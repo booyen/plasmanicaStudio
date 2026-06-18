@@ -8,7 +8,7 @@ import { X, RefreshCw } from 'lucide-react';
 import { Button } from '../../components/ui/button.js';
 import { Select } from '../../components/ui/select.js';
 import { useConfigStore } from '../../stores/config.js';
-import { GRADIENTS, generatePalette, HARMONY_MODES } from '../../lib/themes.js';
+import { GRADIENTS, generatePaletteOklch as generatePalette, HARMONY_MODES } from '../../lib/themes.js';
 
 const GRADIENT_KEYS = Object.keys(GRADIENTS as Record<string, string[]>);
 

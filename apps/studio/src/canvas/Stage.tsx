@@ -4,7 +4,7 @@
 // CSS transform handles the viewport so the engine keeps its native resolution.
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useViewport } from './useViewport.js';
-import { ASPECTS, ASPECT_KEYS, useStageStore } from '../stores/stage.js';
+import { ASPECTS, useStageStore } from '../stores/stage.js';
 
 const isTyping = (e: KeyboardEvent) => {
   const t = e.target as HTMLElement | null;
@@ -30,10 +30,19 @@ export function Stage({
   const frameRef = useRef(frame);
   frameRef.current = frame;
   const getFrameSize = useCallback(() => frameRef.current, []);
-  const { vp, zoomAt, startPan, movePan, endPan, reset, fit } = useViewport(
+  const { vp, zoomAt, startPan, movePan, endPan, fit, setZoom } = useViewport(
     containerRef,
     getFrameSize,
   );
+
+  // Bridge the viewport to the stage store so the bottom dock can read the zoom
+  // and drive Fit / zoom-to from outside the Stage.
+  useEffect(() => {
+    useStageStore.setState({ zoom: vp.zoom });
+  }, [vp.zoom]);
+  useEffect(() => {
+    useStageStore.setState({ zoomTo: setZoom, doFit: fit });
+  }, [setZoom, fit]);
 
   const [spaceDown, setSpaceDown] = useState(false);
   const [panning, setPanning] = useState(false);
@@ -151,70 +160,6 @@ export function Stage({
           {overlay}
         </div>
       </div>
-
-      <StageControls zoom={vp.zoom} onFit={fit} onReset={reset} />
     </div>
-  );
-}
-
-// --- minimal floating controls (polished into shadcn in Task 6) ---
-
-function StageControls({ zoom, onFit, onReset }: { zoom: number; onFit: () => void; onReset: () => void }) {
-  const aspect = useStageStore((s) => s.aspect);
-  const setAspect = useStageStore((s) => s.setAspect);
-  const stop = (e: React.PointerEvent) => e.stopPropagation();
-
-  return (
-    <div
-      onPointerDown={stop}
-      style={{
-        position: 'absolute',
-        left: 16,
-        bottom: 16,
-        display: 'flex',
-        gap: 6,
-        alignItems: 'center',
-        padding: 6,
-        borderRadius: 10,
-        background: 'rgba(20,20,26,0.82)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(8px)',
-        color: '#e6e6ee',
-        font: '12px system-ui',
-        userSelect: 'none',
-      }}
-    >
-      {ASPECT_KEYS.map((k) => (
-        <Btn key={k} active={aspect === k} onClick={() => setAspect(k)}>
-          {ASPECTS[k].label}
-        </Btn>
-      ))}
-      <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
-      <Btn onClick={onFit}>Fit</Btn>
-      <Btn onClick={onReset}>100%</Btn>
-      <span style={{ minWidth: 42, textAlign: 'right', opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
-        {Math.round(zoom * 100)}%
-      </span>
-    </div>
-  );
-}
-
-function Btn({ children, active, onClick }: { children: ReactNode; active?: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        appearance: 'none',
-        border: '1px solid ' + (active ? 'rgba(120,160,255,0.6)' : 'rgba(255,255,255,0.1)'),
-        background: active ? 'rgba(90,130,255,0.22)' : 'rgba(255,255,255,0.04)',
-        color: 'inherit',
-        font: 'inherit',
-        padding: '4px 9px',
-        borderRadius: 7,
-        cursor: 'pointer',
-      }}
-    >
-      {children}
-    </button>
   );
 }

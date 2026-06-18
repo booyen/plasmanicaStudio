@@ -24,6 +24,13 @@ type StageStore = {
   /** Reveal the per-param padlocks (the "advanced locks" disclosure). */
   showParamLocks: boolean;
   toggleParamLocks: () => void;
+
+  // Viewport bridge: the Stage owns the pan/zoom math and mirrors the current
+  // zoom here (for the bottom dock's readout + dropdown) and registers the
+  // commands the dock invokes. Defaults are no-ops until the Stage mounts.
+  zoom: number;
+  zoomTo: (z: number) => void;
+  doFit: () => void;
 };
 
 export const useStageStore = create<StageStore>((set) => ({
@@ -35,4 +42,7 @@ export const useStageStore = create<StageStore>((set) => ({
   toggleUI: () => set((s) => ({ uiHidden: !s.uiHidden })),
   showParamLocks: false,
   toggleParamLocks: () => set((s) => ({ showParamLocks: !s.showParamLocks })),
+  zoom: 1,
+  zoomTo: () => {},
+  doFit: () => {},
 }));

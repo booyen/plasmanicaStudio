@@ -1,0 +1,24 @@
+import { describe, it, expect } from 'vitest';
+import { generatePaletteOklch, oklchToHex } from './palette.js';
+
+const HEX = /^#[0-9a-f]{6}$/;
+
+describe('OKLCH palette generator', () => {
+  it('oklchToHex returns a valid hex', () => {
+    expect(oklchToHex(0.6, 0.12, 200)).toMatch(HEX);
+    expect(oklchToHex(0, 0, 0)).toMatch(HEX);
+  });
+  it('each harmony yields valid hex colors of the expected count', () => {
+    expect(generatePaletteOklch('analogous')).toHaveLength(5);
+    expect(generatePaletteOklch('complementary')).toHaveLength(4);
+    expect(generatePaletteOklch('triadic')).toHaveLength(3);
+    expect(generatePaletteOklch('mono')).toHaveLength(4);
+    for (const m of ['analogous', 'complementary', 'triadic', 'mono', 'random'] as const) {
+      for (const c of generatePaletteOklch(m)) expect(c).toMatch(HEX);
+    }
+  });
+  it('triadic spans distinct hues (not all the same color)', () => {
+    const p = generatePaletteOklch('triadic');
+    expect(new Set(p).size).toBe(3);
+  });
+});

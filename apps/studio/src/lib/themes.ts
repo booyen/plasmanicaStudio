@@ -5,6 +5,7 @@ export {
   THEMES,
   THEME_NAMES,
   generatePalette,
+  generatePaletteOklch,
   FIELD_NAMES,
   MATERIAL_NAMES,
   SHAPE_NAMES,

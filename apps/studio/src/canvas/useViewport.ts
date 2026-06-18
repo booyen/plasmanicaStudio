@@ -55,6 +55,9 @@ export function useViewport(
 
   const reset = useCallback(() => setVp({ x: 0, y: 0, zoom: 1 }), []);
 
+  /** Set zoom about the frame center (used by the bottom-dock zoom dropdown). */
+  const setZoom = useCallback((z: number) => setVp((p) => ({ ...p, zoom: clampZoom(z) })), []);
+
   /** Center the frame and scale it to fit the container with padding. */
   const fit = useCallback(() => {
     const el = containerRef.current;
@@ -66,5 +69,5 @@ export function useViewport(
     setVp({ x: 0, y: 0, zoom: z });
   }, [containerRef, frameSize]);
 
-  return { vp, zoomAt, startPan, movePan, endPan, reset, fit };
+  return { vp, zoomAt, startPan, movePan, endPan, reset, fit, setZoom };
 }

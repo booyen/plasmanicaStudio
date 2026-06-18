@@ -1,8 +1,8 @@
 // Overlay group: gradient/color type, blend mode, opacity, two color+alpha stops,
 // and per-type geometry (angle for linear; center+radius for radial).
 import { OVERLAY_TYPES, OVERLAY_BLENDS } from '@effects/core';
-import { Chip } from '../../components/ui/chip.js';
 import { Select } from '../../components/ui/select.js';
+import { SelectGroup } from './SelectGroup.js';
 import { ParamSlider } from './ParamSlider.js';
 import { PARAMS } from './spec.js';
 import { useConfigStore } from '../../stores/config.js';
@@ -16,13 +16,12 @@ export function OverlayControls() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-1.5">
-        {OVERLAY_TYPES.map((t) => (
-          <Chip key={t} active={type === t} onClick={() => set('overlay.type', t)}>
-            {t}
-          </Chip>
-        ))}
-      </div>
+      <label className="flex items-center gap-2 text-[12px] text-muted-foreground">
+        type
+        <div className="ml-auto w-[150px]">
+          <SelectGroup path="overlay.type" options={OVERLAY_TYPES} />
+        </div>
+      </label>
 
       {type !== 'none' && (
         <>

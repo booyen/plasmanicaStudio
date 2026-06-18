@@ -11,6 +11,8 @@ import { CenterHandle } from './canvas/CenterHandle.js';
 import { OverlayHandles } from './canvas/OverlayHandles.js';
 import { LeftPanel } from './panels/LeftPanel.js';
 import { RightPanel } from './panels/RightPanel.js';
+import { BottomDock } from './panels/BottomDock.js';
+import { ExportDock } from './panels/ExportDock.js';
 import { surprise } from './lib/surprise.js';
 import { rendererRef } from './lib/rendererRef.js';
 
@@ -64,6 +66,8 @@ export function App() {
       </Stage>
       <LeftPanel />
       <RightPanel />
+      <BottomDock />
+      <ExportDock />
     </div>
   );
 }

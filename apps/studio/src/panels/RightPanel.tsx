@@ -1,37 +1,27 @@
-// Properties panel (right HUD): the full legacy control surface — motion/material/
-// shape pickers, color, motion/pattern/gravity/cursor/busyness sliders, center.
-import { Pause, Play, Maximize, RotateCcw, KeyRound } from 'lucide-react';
-import { defaultConfig } from '@effects/core';
+// Properties panel (right HUD): motion/material/shape/overlay pickers (dropdowns),
+// color, sliders, cursor, shape center. Playback (pause/fullscreen/reset) lives in
+// the bottom dock; export lives in the top-right dock.
+import { KeyRound } from 'lucide-react';
 import { Section } from './Section.js';
-import { TabGroup } from './controls/TabGroup.js';
+import { SelectGroup } from './controls/SelectGroup.js';
 import { ParamSlider } from './controls/ParamSlider.js';
 import { ColorControls } from './controls/ColorControls.js';
 import { CursorControls } from './controls/CursorControls.js';
 import { CenterPresets } from './controls/CenterPresets.js';
-import { ExportControls } from './controls/ExportControls.js';
 import { OverlayControls } from './controls/OverlayControls.js';
 import { PARAMS } from './controls/spec.js';
-import { Button } from '../components/ui/button.js';
 import { useConfigStore } from '../stores/config.js';
 import { useStageStore } from '../stores/stage.js';
 import { FIELD_NAMES, MATERIAL_NAMES, SHAPE_NAMES } from '../lib/themes.js';
 
-function toggleFullscreen() {
-  if (document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen?.();
-}
-
 export function RightPanel() {
   const motion = useConfigStore((s) => s.config.motion);
   const material = useConfigStore((s) => s.config.material);
-  const commit = useConfigStore((s) => s.commit);
-  const paused = useStageStore((s) => s.paused);
-  const setPaused = useStageStore((s) => s.setPaused);
   const showParamLocks = useStageStore((s) => s.showParamLocks);
   const toggleParamLocks = useStageStore((s) => s.toggleParamLocks);
 
   return (
-    <aside className="hud-panel pointer-events-auto absolute right-4 top-4 bottom-4 z-10 flex w-[338px] flex-col overflow-hidden rounded-[12px] border border-border bg-card/85 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.75)] backdrop-blur-xl">
+    <aside className="hud-panel pointer-events-auto absolute right-4 top-[60px] bottom-4 z-10 flex w-[320px] flex-col overflow-hidden rounded-[12px] border border-border bg-card/85 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.75)] backdrop-blur-xl">
       <header className="sticky top-0 z-[3] flex items-start border-b border-border bg-card/90 px-[18px] pb-3 pt-4 backdrop-blur">
         <div>
           <div className="text-[13px] font-medium uppercase tracking-[0.2em]">Plasma Studio</div>
@@ -56,13 +46,13 @@ export function RightPanel() {
 
       <div className="flex-1 overflow-y-auto px-[18px] pb-[18px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Section title="Motion" lockKey="motion">
-          <TabGroup path="motion" options={FIELD_NAMES} />
+          <SelectGroup path="motion" options={FIELD_NAMES} />
         </Section>
         <Section title="Material" lockKey="material">
-          <TabGroup path="material" options={MATERIAL_NAMES} />
+          <SelectGroup path="material" options={MATERIAL_NAMES} />
         </Section>
         <Section title="Shape" lockKey="shape">
-          <TabGroup path="shape" options={SHAPE_NAMES} />
+          <SelectGroup path="shape" options={SHAPE_NAMES} />
         </Section>
         <Section title="Shape center" lockKey="shape">
           <CenterPresets />
@@ -73,18 +63,6 @@ export function RightPanel() {
         <Section title="Motion controls" lockKey="motion">
           <ParamSlider spec={PARAMS.speed} />
           <ParamSlider spec={PARAMS.scale} />
-          <div className="flex gap-1.5">
-            <Button onClick={() => setPaused(!paused)}>
-              {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
-              {paused ? 'play' : 'pause'}
-            </Button>
-            <Button onClick={toggleFullscreen}>
-              <Maximize className="h-3.5 w-3.5" /> fullscreen
-            </Button>
-            <Button onClick={() => commit(defaultConfig)}>
-              <RotateCcw className="h-3.5 w-3.5" /> reset
-            </Button>
-          </div>
         </Section>
         <Section title="Pattern & flow" lockKey="pattern">
           <ParamSlider spec={PARAMS.swirl} />
@@ -108,9 +86,6 @@ export function RightPanel() {
         </Section>
         <Section title="Overlay" lockKey="overlay">
           <OverlayControls />
-        </Section>
-        <Section title="Export">
-          <ExportControls />
         </Section>
       </div>
     </aside>
