@@ -14,6 +14,14 @@ const SAMPLES: Array<{ name: string; cfg: Record<string, unknown> }> = [
     name: 'classic-smooth-flow',
     cfg: { motion: 'Classic', material: 'Smooth', shape: 'Free', swirl: 0.4, turbulence: 1.4, flow: { angleDeg: 90, amount: 0.4 } },
   },
+  {
+    name: 'overlay-radial-multiply',
+    cfg: {
+      motion: 'Classic', material: 'Smooth', shape: 'Free',
+      overlay: { type: 'radial', blend: 'multiply', opacity: 0.9, colorA: '#ffffff', alphaA: 0,
+        colorB: '#000010', alphaB: 1, angleDeg: 0, center: [0.5, 0.5], radius: 0.8 },
+    },
+  },
 ];
 
 const SEEK_T = 12.5;

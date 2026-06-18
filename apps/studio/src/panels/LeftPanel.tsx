@@ -7,11 +7,12 @@ import { Button } from '../components/ui/button.js';
 import { useConfigStore } from '../stores/config.js';
 import { THEME_NAMES } from '../lib/themes.js';
 import { applyTheme } from '../lib/applyTheme.js';
-import { surprise } from '../lib/surprise.js';
+import { surprise, rerollWithSeed } from '../lib/surprise.js';
 import { shareUrl } from '../share.js';
 
 export function LeftPanel() {
   const setConfig = useConfigStore((s) => s.setConfig);
+  const seed = useConfigStore((s) => s.config.seed);
   const [copied, setCopied] = useState(false);
   const applyVibe = (name: string) =>
     setConfig(applyTheme(name, useConfigStore.getState().config));
@@ -38,6 +39,15 @@ export function LeftPanel() {
           <Button variant="primary" size="full" onClick={surprise}>
             <Dice5 className="h-3.5 w-3.5" /> surprise me
           </Button>
+          <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+            seed
+            <input
+              type="number"
+              value={seed}
+              onChange={(e) => rerollWithSeed(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
+              className="ml-auto w-[96px] rounded-md border border-border bg-secondary px-1.5 py-1 text-right font-mono text-[11px] text-foreground focus:border-ring focus:outline-none"
+            />
+          </div>
           <div className="flex flex-wrap gap-1.5">
             {THEME_NAMES.map((name) => (
               <Chip key={name} onClick={() => applyVibe(name)}>
