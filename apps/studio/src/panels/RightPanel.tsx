@@ -24,7 +24,7 @@ function toggleFullscreen() {
 export function RightPanel() {
   const motion = useConfigStore((s) => s.config.motion);
   const material = useConfigStore((s) => s.config.material);
-  const setConfig = useConfigStore((s) => s.setConfig);
+  const commit = useConfigStore((s) => s.commit);
   const paused = useStageStore((s) => s.paused);
   const setPaused = useStageStore((s) => s.setPaused);
   const showParamLocks = useStageStore((s) => s.showParamLocks);
@@ -81,7 +81,7 @@ export function RightPanel() {
             <Button onClick={toggleFullscreen}>
               <Maximize className="h-3.5 w-3.5" /> fullscreen
             </Button>
-            <Button onClick={() => setConfig(defaultConfig)}>
+            <Button onClick={() => commit(defaultConfig)}>
               <RotateCcw className="h-3.5 w-3.5" /> reset
             </Button>
           </div>

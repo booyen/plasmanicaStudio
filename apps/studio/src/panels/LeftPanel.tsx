@@ -1,6 +1,6 @@
 // Vibes panel (left HUD): theme presets, surprise-me, and the engine picker.
 import { useState } from 'react';
-import { Dice5, Link2 } from 'lucide-react';
+import { Dice5, Link2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Section } from './Section.js';
 import { Chip } from '../components/ui/chip.js';
 import { Button } from '../components/ui/button.js';
@@ -11,11 +11,14 @@ import { surprise, rerollWithSeed } from '../lib/surprise.js';
 import { shareUrl } from '../share.js';
 
 export function LeftPanel() {
-  const setConfig = useConfigStore((s) => s.setConfig);
   const seed = useConfigStore((s) => s.config.seed);
+  const canBack = useConfigStore((s) => s.histIndex > 0);
+  const canForward = useConfigStore((s) => s.histIndex < s.history.length - 1);
+  const back = useConfigStore((s) => s.back);
+  const forward = useConfigStore((s) => s.forward);
   const [copied, setCopied] = useState(false);
   const applyVibe = (name: string) =>
-    setConfig(applyTheme(name, useConfigStore.getState().config));
+    useConfigStore.getState().commit(applyTheme(name, useConfigStore.getState().config));
 
   const copyLink = async () => {
     try {
@@ -36,9 +39,17 @@ export function LeftPanel() {
       </header>
       <div className="px-[18px] pb-[18px]">
         <Section title="Vibes">
-          <Button variant="primary" size="full" onClick={surprise}>
-            <Dice5 className="h-3.5 w-3.5" /> surprise me
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button size="icon" disabled={!canBack} onClick={back} title="previous look ( [ )">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="primary" size="full" onClick={surprise} className="flex-1">
+              <Dice5 className="h-3.5 w-3.5" /> surprise me
+            </Button>
+            <Button size="icon" disabled={!canForward} onClick={forward} title="next look ( ] )">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
           <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
             seed
             <input

@@ -35,11 +35,14 @@ export function App() {
     };
   }, []);
 
-  // H = hide/show UI (Space tap = surprise-me is handled by the Stage).
+  // H = hide/show UI; [ / ] = step back/forward through generated looks.
+  // (Space tap = surprise-me is handled by the Stage.)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (isField(e.target)) return;
       if (e.key === 'h' || e.key === 'H') useStageStore.getState().toggleUI();
+      else if (e.key === '[') useConfigStore.getState().back();
+      else if (e.key === ']') useConfigStore.getState().forward();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
