@@ -8,6 +8,7 @@ import { ParamSlider } from './controls/ParamSlider.js';
 import { ColorControls } from './controls/ColorControls.js';
 import { CursorControls } from './controls/CursorControls.js';
 import { CenterPresets } from './controls/CenterPresets.js';
+import { ExportControls } from './controls/ExportControls.js';
 import { PARAMS } from './controls/spec.js';
 import { Button } from '../components/ui/button.js';
 import { useConfigStore } from '../stores/config.js';
@@ -103,6 +104,9 @@ export function RightPanel() {
           <ParamSlider spec={PARAMS.contrast} />
           <ParamSlider spec={PARAMS.vis} />
           <ParamSlider spec={PARAMS.grain} />
+        </Section>
+        <Section title="Export">
+          <ExportControls />
         </Section>
       </div>
     </aside>

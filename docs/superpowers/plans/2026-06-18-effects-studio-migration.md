@@ -180,10 +180,10 @@
 **Interfaces:**
 - Produces: `exportPng(renderer, w, h): Promise<Blob>`; `exportVideo(renderer, {durationS, mode:'cont'|'loop', quality}): Promise<Blob>` carrying the fixed crossfade logic; `buildEmbed(config): string` consuming `packages/embed` (replaces the string-built drift-prone snippet).
 
-- [ ] **Step 1:** Port PNG exporter (offscreen resize → toBlob).
-- [ ] **Step 2:** Port video exporter **with the already-fixed two-mode logic** (Continuous straight; Seamless final-`B` smoothstep crossfade, `B=min(0.7,0.25*L)`); MediaRecorder for now (WebCodecs is M4).
-- [ ] **Step 3:** `packages/embed` custom element wrapping core; `buildEmbed` emits `<script>`+`<plasma-bg config>`; verify gz size budget.
-- [ ] **Step 4:** Commit `feat: exporters (png, two-mode video, embed package)`.
+- [x] **Step 1:** Port PNG exporter (offscreen resize → toBlob).
+- [x] **Step 2:** Port video exporter **with the already-fixed two-mode logic** (Continuous straight; Seamless final-`B` smoothstep crossfade, `B=min(0.7,0.25*L)`); MediaRecorder for now (WebCodecs is M4).
+- [x] **Step 3:** `packages/embed` custom element wrapping core; `buildEmbed` emits `<script>`+`<plasma-bg config>`; verify gz size budget.
+- [x] **Step 4:** Commit `feat: exporters (png, two-mode video, embed package)`.
 
 ---
 

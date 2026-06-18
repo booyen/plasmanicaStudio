@@ -4,7 +4,8 @@
 import { VERT, FLOW_FRAG, FIELD_NAMES, MATERIAL_NAMES, buildFrag } from './shaders.js';
 import { SHAPE_NAMES } from './data.js';
 import { makeProgram, hex2rgb } from './gl.js';
-import { type CoreConfig, type CursorMode, CURSOR_MODES, defaultConfig } from './config.js';
+import type { CoreConfig } from './config.js';
+import { type CursorMode, CURSOR_MODES, defaultConfig } from './config-defaults.js';
 
 const FW = 256; // flowmap resolution
 
@@ -357,6 +358,33 @@ export class PlasmaRenderer {
 
   get time() {
     return this.tAccum;
+  }
+
+  /** The backing canvas — exporters need it for toBlob()/captureStream(). */
+  get element(): HTMLCanvasElement {
+    return this.canvas;
+  }
+
+  private exportPrev: [number, number] | null = null;
+
+  /** Resize the canvas to an exact export resolution and freeze the live loop. */
+  beginExport(w: number, h: number) {
+    this.setExporting(true);
+    this.exportPrev = [this.canvas.width, this.canvas.height];
+    this.canvas.width = w;
+    this.canvas.height = h;
+    this.gl.viewport(0, 0, w, h);
+  }
+
+  /** Restore the live canvas size and resume the loop. */
+  endExport() {
+    if (this.exportPrev) {
+      this.canvas.width = this.exportPrev[0];
+      this.canvas.height = this.exportPrev[1];
+      this.exportPrev = null;
+    }
+    this.setExporting(false);
+    this.resize();
   }
 
   private frame = (n: number) => {

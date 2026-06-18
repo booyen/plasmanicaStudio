@@ -3,6 +3,9 @@
 import { z } from 'zod';
 import { FIELD_NAMES, MATERIAL_NAMES } from './shaders.js';
 import { SHAPE_NAMES } from './data.js';
+import { CURSOR_MODES, type CursorMode, defaultConfig as DEFAULTS } from './config-defaults.js';
+
+export { CURSOR_MODES, type CursorMode };
 
 // Numeric field: missing/invalid → default; valid → clamped to [min,max].
 const num = (def: number, min: number, max: number) =>
@@ -22,9 +25,6 @@ const hex = (def: string) =>
 // Membership-validated string (enum over a runtime list); invalid → default.
 const inList = (list: readonly string[], def: string) =>
   z.preprocess((v) => (typeof v === 'string' && list.includes(v) ? v : def), z.string());
-
-export const CURSOR_MODES = ['fluid', 'pixels', 'spotlight', 'light', 'contrast'] as const;
-export type CursorMode = (typeof CURSOR_MODES)[number];
 
 const cursorModes = z.preprocess(
   (v) => (Array.isArray(v) ? v.filter((m) => (CURSOR_MODES as readonly string[]).includes(m)) : ['fluid']),
@@ -85,4 +85,6 @@ export function parseConfig(input: unknown): CoreConfig {
   return PlasmaConfig.parse(obj);
 }
 
-export const defaultConfig: CoreConfig = parseConfig({});
+// Canonical default (zero-dep object). Re-exported here for back-compat; a test
+// asserts it equals parseConfig({}) so the hand-written object can't drift.
+export const defaultConfig: CoreConfig = DEFAULTS;

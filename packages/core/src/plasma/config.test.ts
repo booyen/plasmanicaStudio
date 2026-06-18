@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { parseConfig, defaultConfig, PlasmaConfig } from './config.js';
 
 describe('PlasmaConfig', () => {
+  it('hand-written defaultConfig equals parseConfig({}) (no drift)', () => {
+    expect(defaultConfig).toEqual(parseConfig({}));
+  });
+
   it('defaultConfig matches the legacy initial state', () => {
     expect(defaultConfig.motion).toBe('Classic');
     expect(defaultConfig.material).toBe('Smooth');

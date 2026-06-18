@@ -92,6 +92,19 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(lightningcss@1.32.0)
 
+  packages/embed:
+    dependencies:
+      '@effects/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+      vite:
+        specifier: ^5.4.0
+        version: 5.4.21(lightningcss@1.32.0)
+
   packages/react:
     dependencies:
       '@effects/core':

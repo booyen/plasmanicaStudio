@@ -11,6 +11,7 @@ import { CenterHandle } from './canvas/CenterHandle.js';
 import { LeftPanel } from './panels/LeftPanel.js';
 import { RightPanel } from './panels/RightPanel.js';
 import { surprise } from './lib/surprise.js';
+import { rendererRef } from './lib/rendererRef.js';
 
 const isField = (t: EventTarget | null) => {
   const el = t as HTMLElement | null;
@@ -24,11 +25,13 @@ export function App() {
   // a combined unsubscribe that PlasmaCanvas runs on dispose.
   const onReady = useCallback((renderer: PlasmaRenderer) => {
     renderer.setConfig(useConfigStore.getState().config);
+    rendererRef.current = renderer; // exporters reach the live renderer here
     const unsubCfg = useConfigStore.subscribe((s) => renderer.setConfig(s.config));
     const unsubPause = useStageStore.subscribe((s) => renderer.setPaused(s.paused));
     return () => {
       unsubCfg();
       unsubPause();
+      if (rendererRef.current === renderer) rendererRef.current = null;
     };
   }, []);
 
