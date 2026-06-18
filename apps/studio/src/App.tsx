@@ -8,6 +8,7 @@ import { useConfigStore } from './stores/config.js';
 import { useStageStore } from './stores/stage.js';
 import { Stage } from './canvas/Stage.js';
 import { CenterHandle } from './canvas/CenterHandle.js';
+import { OverlayHandles } from './canvas/OverlayHandles.js';
 import { LeftPanel } from './panels/LeftPanel.js';
 import { RightPanel } from './panels/RightPanel.js';
 import { surprise } from './lib/surprise.js';
@@ -50,7 +51,15 @@ export function App() {
 
   return (
     <div className={'fixed inset-0' + (uiHidden ? ' ui-hidden' : '')}>
-      <Stage overlay={<CenterHandle />} onSpaceTap={surprise}>
+      <Stage
+        overlay={
+          <>
+            <CenterHandle />
+            <OverlayHandles />
+          </>
+        }
+        onSpaceTap={surprise}
+      >
         <PlasmaCanvas onReady={onReady} style={{ width: '100%', height: '100%', display: 'block' }} />
       </Stage>
       <LeftPanel />
