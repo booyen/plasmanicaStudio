@@ -1,15 +1,18 @@
 // One labelled slider bound to a config path: editable value box + optional
 // center tick. Subscribes only to its own leaf, so a drag re-renders just this
 // control (and the renderer updates outside React via the store subscription).
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { Slider } from '../../components/ui/slider.js';
+import { LockButton } from '../../components/ui/lock-button.js';
 import { useConfigStore } from '../../stores/config.js';
+import { useStageStore } from '../../stores/stage.js';
 import { getByPath } from '../../lib/path.js';
 import type { ParamSpec } from './spec.js';
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-export function ParamSlider({ spec, lock }: { spec: ParamSpec; lock?: ReactNode }) {
+export function ParamSlider({ spec }: { spec: ParamSpec }) {
+  const showLocks = useStageStore((s) => s.showParamLocks);
   const config = useConfigStore((s) => getByPath(s.config, spec.path) as number);
   const set = useConfigStore((s) => s.set);
 
@@ -38,7 +41,7 @@ export function ParamSlider({ spec, lock }: { spec: ParamSpec; lock?: ReactNode 
       <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
         <span>{spec.label}</span>
         <div className="ml-auto flex items-center gap-1.5">
-          {lock}
+          {showLocks && <LockButton lockKey={spec.path} title={`lock ${spec.label}`} />}
           <input
             value={editing ? text : display.toFixed(decimals)}
             inputMode="decimal"

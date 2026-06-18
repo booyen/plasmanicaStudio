@@ -10,17 +10,12 @@ import { Stage } from './canvas/Stage.js';
 import { CenterHandle } from './canvas/CenterHandle.js';
 import { LeftPanel } from './panels/LeftPanel.js';
 import { RightPanel } from './panels/RightPanel.js';
-import { applyTheme, randomThemeName } from './lib/applyTheme.js';
+import { surprise } from './lib/surprise.js';
 
 const isField = (t: EventTarget | null) => {
   const el = t as HTMLElement | null;
   return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 };
-
-function surprise() {
-  const { config, setConfig } = useConfigStore.getState();
-  setConfig(applyTheme(randomThemeName(), config));
-}
 
 export function App() {
   const uiHidden = useStageStore((s) => s.uiHidden);

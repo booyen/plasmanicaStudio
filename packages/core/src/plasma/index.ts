@@ -4,3 +4,4 @@ export * from './data.js';
 export * from './themes.js';
 export * from './config.js';
 export * from './renderer.js';
+export * from './randomize.js';

@@ -67,9 +67,9 @@
 - Produces: `PlasmaConfig` (zod), `defaultConfig: CoreConfig`, `parseConfig(unknown): CoreConfig` (validates + clamps).
 
 - [ ] **Step 1:** Write failing test: `parseConfig(defaultConfig)` round-trips; `parseConfig({})` throws; out-of-range numeric is clamped/rejected per schema.
-- [ ] **Step 2:** Run test; expected FAIL (module missing).
+- [x] **Step 2:** Run test; expected FAIL (module missing).
 - [ ] **Step 3:** Implement `config.ts` per roadmap §5.2 schema (version literal 1; motion/material/shape enums; palette hex[1..8]; bg; speed/scalePct/swirl/turbulence/coverage/contrast/visibility/gravity/grain/rotateDeg/detail; flow{angleDeg,amount}; center tuple; cursor{on,modes[],strength,size,trail,turbulence,lag}). Defaults transcribed from the legacy initial slider values.
-- [ ] **Step 4:** Run test; expected PASS.
+- [x] **Step 4:** Run test; expected PASS.
 - [ ] **Step 5:** Commit `feat(core): zod config schema + defaults`.
 
 ---
@@ -161,12 +161,12 @@
   - `pathIsLocked(path: string, locks: Record<string, boolean>): boolean` — true if the path's own key OR its containing group key is locked.
   - `randomizeConfig(current: CoreConfig, locks: Record<string, boolean>): CoreConfig` — generate a candidate (random THEME applied over defaults), then **restore every locked path from `current`**, then `parseConfig` the result. Unlocked → re-rolled; locked → preserved.
 
-- [ ] **Step 1:** Write failing test: with `{ color: true }` locked, `randomizeConfig` keeps `palette`+`bg` identical to current but changes at least one unlocked field across N rolls; with ALL groups locked, output deep-equals current.
-- [ ] **Step 2:** Run test; expected FAIL (module missing).
-- [ ] **Step 3:** Implement `randomize.ts` (group map + path-restore via a small get/set-by-path helper).
-- [ ] **Step 4:** Run test; expected PASS.
-- [ ] **Step 5:** UI — group padlock chips on each panel section, a disclosure (▸) to reveal per-param padlocks, and a 🎲 Surprise-me button (Space shortcut) calling `randomizeConfig(config, locks)` → store.
-- [ ] **Step 6:** Commit `feat(studio): lock-and-randomize (group locks + per-param expand)`.
+- [x] **Step 1:** Write failing test: with `{ color: true }` locked, `randomizeConfig` keeps `palette`+`bg` identical to current but changes at least one unlocked field across N rolls; with ALL groups locked, output deep-equals current.
+- [x] **Step 2:** Run test; expected FAIL (module missing).
+- [x] **Step 3:** Implement `randomize.ts` (group map + path-restore via a small get/set-by-path helper).
+- [x] **Step 4:** Run test; expected PASS.
+- [x] **Step 5:** UI — group padlock chips on each panel section, a disclosure (▸) to reveal per-param padlocks, and a 🎲 Surprise-me button (Space shortcut) calling `randomizeConfig(config, locks)` → store.
+- [x] **Step 6:** Commit `feat(studio): lock-and-randomize (group locks + per-param expand)`.
 
 ---
 

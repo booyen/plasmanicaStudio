@@ -21,6 +21,9 @@ type StageStore = {
   setPaused: (p: boolean) => void;
   uiHidden: boolean;
   toggleUI: () => void;
+  /** Reveal the per-param padlocks (the "advanced locks" disclosure). */
+  showParamLocks: boolean;
+  toggleParamLocks: () => void;
 };
 
 export const useStageStore = create<StageStore>((set) => ({
@@ -30,4 +33,6 @@ export const useStageStore = create<StageStore>((set) => ({
   setPaused: (paused) => set({ paused }),
   uiHidden: false,
   toggleUI: () => set((s) => ({ uiHidden: !s.uiHidden })),
+  showParamLocks: false,
+  toggleParamLocks: () => set((s) => ({ showParamLocks: !s.showParamLocks })),
 }));

@@ -5,7 +5,8 @@ import { Chip } from '../components/ui/chip.js';
 import { Button } from '../components/ui/button.js';
 import { useConfigStore } from '../stores/config.js';
 import { THEME_NAMES } from '../lib/themes.js';
-import { applyTheme, randomThemeName } from '../lib/applyTheme.js';
+import { applyTheme } from '../lib/applyTheme.js';
+import { surprise } from '../lib/surprise.js';
 
 export function LeftPanel() {
   const setConfig = useConfigStore((s) => s.setConfig);
@@ -19,11 +20,7 @@ export function LeftPanel() {
       </header>
       <div className="px-[18px] pb-[18px]">
         <Section title="Vibes">
-          <Button
-            variant="primary"
-            size="full"
-            onClick={() => applyVibe(randomThemeName())}
-          >
+          <Button variant="primary" size="full" onClick={surprise}>
             <Dice5 className="h-3.5 w-3.5" /> surprise me
           </Button>
           <div className="flex flex-wrap gap-1.5">

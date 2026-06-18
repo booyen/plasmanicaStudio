@@ -1,6 +1,6 @@
 // Properties panel (right HUD): the full legacy control surface — motion/material/
 // shape pickers, color, motion/pattern/gravity/cursor/busyness sliders, center.
-import { Pause, Play, Maximize, RotateCcw } from 'lucide-react';
+import { Pause, Play, Maximize, RotateCcw, KeyRound } from 'lucide-react';
 import { defaultConfig } from '@effects/core';
 import { Section } from './Section.js';
 import { TabGroup } from './controls/TabGroup.js';
@@ -25,33 +25,50 @@ export function RightPanel() {
   const setConfig = useConfigStore((s) => s.setConfig);
   const paused = useStageStore((s) => s.paused);
   const setPaused = useStageStore((s) => s.setPaused);
+  const showParamLocks = useStageStore((s) => s.showParamLocks);
+  const toggleParamLocks = useStageStore((s) => s.toggleParamLocks);
 
   return (
     <aside className="hud-panel pointer-events-auto absolute right-4 top-4 bottom-4 z-10 flex w-[338px] flex-col overflow-hidden rounded-[12px] border border-border bg-card/85 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.75)] backdrop-blur-xl">
-      <header className="sticky top-0 z-[3] border-b border-border bg-card/90 px-[18px] pb-3 pt-4 backdrop-blur">
-        <div className="text-[13px] font-medium uppercase tracking-[0.2em]">Plasma Studio</div>
-        <div className="mt-1 text-[11px] text-muted-foreground">
-          {material} · {motion}
+      <header className="sticky top-0 z-[3] flex items-start border-b border-border bg-card/90 px-[18px] pb-3 pt-4 backdrop-blur">
+        <div>
+          <div className="text-[13px] font-medium uppercase tracking-[0.2em]">Plasma Studio</div>
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            {material} · {motion}
+          </div>
         </div>
+        <button
+          type="button"
+          title="toggle per-parameter locks"
+          onClick={toggleParamLocks}
+          className={
+            'ml-auto grid h-7 w-7 place-items-center rounded-md border transition-colors ' +
+            (showParamLocks
+              ? 'border-ring/60 bg-accent text-foreground'
+              : 'border-border text-muted-foreground hover:text-foreground')
+          }
+        >
+          <KeyRound className="h-3.5 w-3.5" />
+        </button>
       </header>
 
       <div className="flex-1 overflow-y-auto px-[18px] pb-[18px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Section title="Motion">
+        <Section title="Motion" lockKey="motion">
           <TabGroup path="motion" options={FIELD_NAMES} />
         </Section>
-        <Section title="Material">
+        <Section title="Material" lockKey="material">
           <TabGroup path="material" options={MATERIAL_NAMES} />
         </Section>
-        <Section title="Shape">
+        <Section title="Shape" lockKey="shape">
           <TabGroup path="shape" options={SHAPE_NAMES} />
         </Section>
-        <Section title="Shape center">
+        <Section title="Shape center" lockKey="shape">
           <CenterPresets />
         </Section>
-        <Section title="Color">
+        <Section title="Color" lockKey="color">
           <ColorControls />
         </Section>
-        <Section title="Motion controls">
+        <Section title="Motion controls" lockKey="motion">
           <ParamSlider spec={PARAMS.speed} />
           <ParamSlider spec={PARAMS.scale} />
           <div className="flex gap-1.5">
@@ -67,7 +84,7 @@ export function RightPanel() {
             </Button>
           </div>
         </Section>
-        <Section title="Pattern & flow">
+        <Section title="Pattern & flow" lockKey="pattern">
           <ParamSlider spec={PARAMS.swirl} />
           <ParamSlider spec={PARAMS.turb} />
           <ParamSlider spec={PARAMS.flowAng} />
@@ -75,13 +92,13 @@ export function RightPanel() {
           <ParamSlider spec={PARAMS.flowAmt} />
           <ParamSlider spec={PARAMS.detail} />
         </Section>
-        <Section title="Gravity">
+        <Section title="Gravity" lockKey="pattern">
           <ParamSlider spec={PARAMS.gravity} />
         </Section>
-        <Section title="Cursor">
+        <Section title="Cursor" lockKey="cursor">
           <CursorControls />
         </Section>
-        <Section title="Busyness">
+        <Section title="Busyness" lockKey="pattern">
           <ParamSlider spec={PARAMS.cover} />
           <ParamSlider spec={PARAMS.contrast} />
           <ParamSlider spec={PARAMS.vis} />

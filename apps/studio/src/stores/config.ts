@@ -2,7 +2,7 @@
 // the lock map (consumed by Task 6b's lock-and-randomize). The renderer subscribes
 // to this store OUTSIDE React (see App.tsx), so control edits never re-render the tree.
 import { create } from 'zustand';
-import { type CoreConfig, defaultConfig, parseConfig } from '@effects/core';
+import { type CoreConfig, defaultConfig, parseConfig, pathIsLocked } from '@effects/core';
 import { setByPath } from '../lib/path.js';
 
 export type ConfigStore = {
@@ -23,5 +23,6 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
   setConfig: (cfg) => set({ config: parseConfig(cfg) }),
   set: (path, value) => set((s) => ({ config: parseConfig(setByPath(s.config, path, value)) })),
   toggleLock: (key) => set((s) => ({ locks: { ...s.locks, [key]: !s.locks[key] } })),
-  isLocked: (key) => !!get().locks[key],
+  // Group-aware: a path reports locked if its own key OR its containing group is.
+  isLocked: (key) => pathIsLocked(key, get().locks),
 }));
