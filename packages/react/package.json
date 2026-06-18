@@ -1,0 +1,18 @@
+{
+  "name": "@effects/react",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "peerDependencies": {
+    "react": "^18.3.1"
+  },
+  "dependencies": {
+    "@effects/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "typescript": "^5.6.0"
+  }
+}
