@@ -4,6 +4,7 @@
 import { VERT, FLOW_FRAG, FIELD_NAMES, MATERIAL_NAMES, buildFrag } from './shaders.js';
 import { SHAPE_NAMES } from './data.js';
 import { makeProgram, hex2rgb } from './gl.js';
+import { COMPOSITE_FRAG, OVERLAY_TYPE_INDEX, OVERLAY_BLEND_INDEX } from './overlay.js';
 import type { CoreConfig } from './config.js';
 import { type CursorMode, CURSOR_MODES, defaultConfig } from './config-defaults.js';
 
@@ -26,6 +27,25 @@ export class PlasmaRenderer {
   private flu: Record<string, WebGLUniformLocation | null> = {};
   private flowPos = -1;
   private flowFrames = 0;
+
+  // overlay composite (plasma → FBO → composite → screen)
+  private compProg: WebGLProgram | null = null;
+  private cloc: Record<string, WebGLUniformLocation | null> = {};
+  private compPos = -1;
+  private plasmaTex: WebGLTexture | null = null;
+  private plasmaFBO: WebGLFramebuffer | null = null;
+  private ptW = 0;
+  private ptH = 0;
+  private ovType = 0;
+  private ovBlend = 0;
+  private ovOpacity = 1;
+  private ovColA: [number, number, number] = [0, 0, 0];
+  private ovAlphaA = 0.5;
+  private ovColB: [number, number, number] = [0, 0, 0];
+  private ovAlphaB = 0;
+  private ovAngle = 0;
+  private ovCenter: [number, number] = [0.5, 0.5];
+  private ovRadius = 0.75;
 
   // config + derived numeric state (legacy internal units)
   private cfg: CoreConfig = defaultConfig;
@@ -96,6 +116,7 @@ export class PlasmaRenderer {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
 
     this.initFlow();
+    this.initComposite();
     this.applyConfigInternal(defaultConfig);
     this.recompile();
     this.resize();
@@ -137,6 +158,36 @@ export class PlasmaRenderer {
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  }
+
+  // ---- overlay composite ----
+  private initComposite() {
+    const gl = this.gl;
+    this.compProg = makeProgram(gl, VERT, COMPOSITE_FRAG);
+    if (!this.compProg) return;
+    gl.useProgram(this.compProg);
+    this.compPos = gl.getAttribLocation(this.compProg, 'a_pos');
+    const U = (n: string) => gl.getUniformLocation(this.compProg!, n);
+    this.cloc = {
+      plasma: U('u_plasma'), type: U('u_ovType'), blend: U('u_ovBlend'), opacity: U('u_ovOpacity'),
+      colA: U('u_ovColA'), alphaA: U('u_ovAlphaA'), colB: U('u_ovColB'), alphaB: U('u_ovAlphaB'),
+      angle: U('u_ovAngle'), center: U('u_ovCenter'), radius: U('u_ovRadius'),
+    };
+    this.plasmaFBO = gl.createFramebuffer();
+  }
+
+  private ensurePlasmaTarget(w: number, h: number) {
+    const gl = this.gl;
+    if (this.plasmaTex && this.ptW === w && this.ptH === h) return;
+    if (!this.plasmaTex) this.plasmaTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this.plasmaTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    this.ptW = w;
+    this.ptH = h;
   }
 
   private updateFlow() {
@@ -239,13 +290,41 @@ export class PlasmaRenderer {
   /** Render one frame at an explicit time (used by exporters + the loop). */
   renderAt(timeVal: number) {
     const gl = this.gl;
-    if (!this.program) return;
+    if (!this.program || !this.compProg) return;
+    const w = this.canvas.width, h = this.canvas.height;
+    this.ensurePlasmaTarget(w, h);
+
+    // pass 1: plasma → plasmaFBO
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.plasmaFBO);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.plasmaTex, 0);
+    gl.viewport(0, 0, w, h);
     gl.useProgram(this.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
     gl.enableVertexAttribArray(this.aposLoc);
     gl.vertexAttribPointer(this.aposLoc, 2, gl.FLOAT, false, 0, 0);
-    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     this.setUniforms(timeVal);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    // pass 2: composite plasmaTex (+ overlay) → screen
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, w, h);
+    gl.useProgram(this.compProg);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.enableVertexAttribArray(this.compPos);
+    gl.vertexAttribPointer(this.compPos, 2, gl.FLOAT, false, 0, 0);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.plasmaTex);
+    gl.uniform1i(this.cloc.plasma!, 0);
+    gl.uniform1i(this.cloc.type!, this.ovType);
+    gl.uniform1i(this.cloc.blend!, this.ovBlend);
+    gl.uniform1f(this.cloc.opacity!, this.ovOpacity);
+    gl.uniform3f(this.cloc.colA!, this.ovColA[0], this.ovColA[1], this.ovColA[2]);
+    gl.uniform1f(this.cloc.alphaA!, this.ovAlphaA);
+    gl.uniform3f(this.cloc.colB!, this.ovColB[0], this.ovColB[1], this.ovColB[2]);
+    gl.uniform1f(this.cloc.alphaB!, this.ovAlphaB);
+    gl.uniform1f(this.cloc.angle!, this.ovAngle);
+    gl.uniform2f(this.cloc.center!, this.ovCenter[0], this.ovCenter[1]);
+    gl.uniform1f(this.cloc.radius!, this.ovRadius);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
@@ -271,6 +350,17 @@ export class PlasmaRenderer {
     this.rot = c.rotateDeg * Math.PI / 180;
     this.centerX = c.center[0];
     this.centerY = c.center[1];
+    const ov = c.overlay;
+    this.ovType = OVERLAY_TYPE_INDEX[ov.type] ?? 0;
+    this.ovBlend = OVERLAY_BLEND_INDEX[ov.blend] ?? 0;
+    this.ovOpacity = ov.opacity;
+    this.ovColA = hex2rgb(ov.colorA);
+    this.ovAlphaA = ov.alphaA;
+    this.ovColB = hex2rgb(ov.colorB);
+    this.ovAlphaB = ov.alphaB;
+    this.ovAngle = (ov.angleDeg * Math.PI) / 180;
+    this.ovCenter = [ov.center[0], ov.center[1]];
+    this.ovRadius = ov.radius;
     this.cursorOn = c.cursor.on;
     this.cursorStr = c.cursor.strength;
     this.mouseRad = c.cursor.size;
@@ -458,6 +548,9 @@ export class PlasmaRenderer {
     this.canvas.removeEventListener('pointermove', this.onPointerMove);
     this.canvas.removeEventListener('pointerout', this.onPointerOut);
     if (this.program) gl.deleteProgram(this.program);
+    if (this.compProg) gl.deleteProgram(this.compProg);
+    if (this.plasmaTex) gl.deleteTexture(this.plasmaTex);
+    if (this.plasmaFBO) gl.deleteFramebuffer(this.plasmaFBO);
     if (this.flowProg) gl.deleteProgram(this.flowProg);
     if (this.flowRead) gl.deleteTexture(this.flowRead);
     if (this.flowWrite) gl.deleteTexture(this.flowWrite);
