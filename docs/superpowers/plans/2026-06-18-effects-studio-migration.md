@@ -85,11 +85,11 @@
 - Consumes: `buildFrag`, `PlasmaConfig`, `defaultConfig`.
 - Produces: `new PlasmaRenderer(canvas)`, `.setConfig(cfg)` (diffs → recompile only when motion/material/shape change, else uniforms only), `.start()/.stop()/.seek(t)`, `.renderAt(t)`, `.dispose()` (idempotent), pointer handling internal (owns lag/velocity/flowmap ping-pong).
 
-- [ ] **Step 1:** Port GL setup, 256×256 RGBA8 ping-pong flowmap FBO (LINEAR filter), `FLOW_FRAG` stamp/decay pass, `setUniforms`, `recompile`, `renderAt`, the rAF loop, adaptive render scale, dirty-flag, DPR≤2 — all from the HTML, preserving §4 gotchas.
-- [ ] **Step 2:** Port the `asp()` coordinate pipeline + speed-change `tAccum` rescale + center-handle/gravity semantics (data only; UI later).
-- [ ] **Step 3:** `dispose()` deletes programs/textures/FBOs; calling twice is safe.
-- [ ] **Step 4:** vitest smoke test (no real GL): importing the module and constructing with a stub that throws on `getContext` fails gracefully; real render verified in Task 8 goldens.
-- [ ] **Step 5:** Commit `feat(core): PlasmaRenderer class at WebGL1 parity`.
+- [x] **Step 1:** Port GL setup, 256×256 RGBA8 ping-pong flowmap FBO (LINEAR filter), `FLOW_FRAG` stamp/decay pass, `setUniforms`, `recompile`, `renderAt`, the rAF loop, adaptive render scale, dirty-flag, DPR≤2 — all from the HTML, preserving §4 gotchas.
+- [x] **Step 2:** Port the `asp()` coordinate pipeline + speed-change `tAccum` rescale + center-handle/gravity semantics (data only; UI later).
+- [x] **Step 3:** `dispose()` deletes programs/textures/FBOs; calling twice is safe.
+- [x] **Step 4:** vitest smoke test (no real GL): importing the module and constructing with a stub that throws on `getContext` fails gracefully; real render verified in Task 8 goldens.
+- [x] **Step 5:** Commit `feat(core): PlasmaRenderer class at WebGL1 parity`.
 
 ---
 
@@ -102,7 +102,7 @@
 
 **Interfaces:**
 - Consumes: `PlasmaRenderer`, `defaultConfig`.
-- Produces: `<PlasmaCanvas config? />` (renderer in `useRef`, created in `useEffect`, disposed on unmount); `useConfigStore` with `set(path, value)` transient updates; renderer subscribes via `store.subscribe` (no per-frame React render).
+- Produces: `<PlasmaCanvas config? />` (renderer in `useRef`, created in `useEffect`, disposed on unmount); `useConfigStore` with `set(path, value)` transient updates; renderer subscribes via `store.subscribe` (no per-frame React render). Store ALSO holds `locks: Record<string, boolean>` (lock keys = group keys like `color`/`motion` and param paths like `cursor.lag`) plus `toggleLock(key)` and `isLocked(path)` — consumed by Task 6b.
 
 - [ ] **Step 1:** Implement `PlasmaCanvas` — create renderer in effect, `setConfig` on store change via `subscribe`, `dispose` on cleanup.
 - [ ] **Step 2:** Studio `App.tsx` renders `<PlasmaCanvas/>` full-bleed; confirm the default plasma animates identically to legacy (side-by-side).
@@ -144,6 +144,29 @@
 - [ ] **Step 3:** LeftPanel: 8 theme "vibes", surprise-me (Space), engine list (plasma).
 - [ ] **Step 4:** Hide-UI (H) and keyboard shortcuts.
 - [ ] **Step 5:** Commit `feat(studio): left/right panels at control parity`.
+
+---
+
+### Task 6b: Lock-and-randomize (surprise-me respects locks)
+
+**Files:**
+- Create: `packages/core/src/plasma/randomize.ts` (`LOCK_GROUPS`, `pathIsLocked`, `randomizeConfig`)
+- Test: `packages/core/src/plasma/randomize.test.ts`
+- Modify: `apps/studio/src/panels/RightPanel.tsx` + `LeftPanel.tsx` (group padlocks + expand-to-per-param; surprise-me button)
+
+**Interfaces:**
+- Consumes: `CoreConfig`, `THEMES`, `defaultConfig`, store `locks`.
+- Produces:
+  - `LOCK_GROUPS: { key: string; label: string; paths: string[] }[]` — Color (`palette`,`bg`), Motion (`motion`,`speed`,`swirl`,`detail`), Material (`material`), Shape (`shape`,`center`,`rotateDeg`), Pattern/Flow (`turbulence`,`flow`,`coverage`,`contrast`,`visibility`,`grain`,`gravity`), Cursor (`cursor`).
+  - `pathIsLocked(path: string, locks: Record<string, boolean>): boolean` — true if the path's own key OR its containing group key is locked.
+  - `randomizeConfig(current: CoreConfig, locks: Record<string, boolean>): CoreConfig` — generate a candidate (random THEME applied over defaults), then **restore every locked path from `current`**, then `parseConfig` the result. Unlocked → re-rolled; locked → preserved.
+
+- [ ] **Step 1:** Write failing test: with `{ color: true }` locked, `randomizeConfig` keeps `palette`+`bg` identical to current but changes at least one unlocked field across N rolls; with ALL groups locked, output deep-equals current.
+- [ ] **Step 2:** Run test; expected FAIL (module missing).
+- [ ] **Step 3:** Implement `randomize.ts` (group map + path-restore via a small get/set-by-path helper).
+- [ ] **Step 4:** Run test; expected PASS.
+- [ ] **Step 5:** UI — group padlock chips on each panel section, a disclosure (▸) to reveal per-param padlocks, and a 🎲 Surprise-me button (Space shortcut) calling `randomizeConfig(config, locks)` → store.
+- [ ] **Step 6:** Commit `feat(studio): lock-and-randomize (group locks + per-param expand)`.
 
 ---
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { FIELDS, MATERIALS, FIELD_NAMES, MATERIAL_NAMES, buildFrag, VERT, FLOW_FRAG, PRE_A } from './shaders.js';
-import { SHAPES, SHAPE_NAMES, GRADIENTS, THEMES, NUMCFG } from './data.js';
+import { SHAPES, SHAPE_NAMES, GRADIENTS, NUMCFG } from './data.js';
+import { THEMES } from './themes.js';
 
 describe('extracted GLSL + data parity', () => {
   it('has the expected counts (12 fields, 14 materials, 7 shapes)', () => {
