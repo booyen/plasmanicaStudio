@@ -196,10 +196,10 @@
 **Interfaces:**
 - Produces: a goldens grid over (motion × material × shape) samples + scripted cursor moves on the flowmap; deterministic renderer (fixed seed/time, grain masked), per-pixel tolerance + SSIM threshold, pinned headless GPU (SwiftShader) to avoid cross-machine flakiness.
 
-- [ ] **Step 1:** `playwright.config.ts` with a single pinned headless Chromium/SwiftShader project and screenshot tolerance.
-- [ ] **Step 2:** Spec renders each (motion×material×shape) sample at a fixed `seek(t)` with grain=0, captures the stage frame, compares to golden.
-- [ ] **Step 3:** Generate baselines from the parity build; commit them.
-- [ ] **Step 4:** Commit `test: playwright visual goldens for plasma engine`.
+- [x] **Step 1:** `playwright.config.ts` with a single pinned headless Chromium/SwiftShader project and screenshot tolerance.
+- [x] **Step 2:** Spec renders each (motion×material×shape) sample at a fixed `seek(t)` with grain=0, captures the stage frame, compares to golden.
+- [x] **Step 3:** Generate baselines from the parity build; commit them.
+- [x] **Step 4:** Commit `test: playwright visual goldens for plasma engine`.
 
 ---
 

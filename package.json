@@ -7,15 +7,20 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
     "studio": "pnpm --filter studio dev"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "turbo": "^2.5.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   },
   "packageManager": "pnpm@10.33.2",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
