@@ -104,9 +104,9 @@
 - Consumes: `PlasmaRenderer`, `defaultConfig`.
 - Produces: `<PlasmaCanvas config? />` (renderer in `useRef`, created in `useEffect`, disposed on unmount); `useConfigStore` with `set(path, value)` transient updates; renderer subscribes via `store.subscribe` (no per-frame React render). Store ALSO holds `locks: Record<string, boolean>` (lock keys = group keys like `color`/`motion` and param paths like `cursor.lag`) plus `toggleLock(key)` and `isLocked(path)` — consumed by Task 6b.
 
-- [ ] **Step 1:** Implement `PlasmaCanvas` — create renderer in effect, `setConfig` on store change via `subscribe`, `dispose` on cleanup.
-- [ ] **Step 2:** Studio `App.tsx` renders `<PlasmaCanvas/>` full-bleed; confirm the default plasma animates identically to legacy (side-by-side).
-- [ ] **Step 3:** Commit `feat(studio): live canvas at parity via core + zustand`. **← M0 complete.**
+- [x] **Step 1:** Implement `PlasmaCanvas` — create renderer in effect, `setConfig` on store change via `subscribe`, `dispose` on cleanup.
+- [x] **Step 2:** Studio `App.tsx` renders `<PlasmaCanvas/>` full-bleed; confirm the default plasma animates identically to legacy (side-by-side).
+- [x] **Step 3:** Commit `feat(studio): live canvas at parity via core + zustand`. **← M0 complete.**
 
 ---
 
