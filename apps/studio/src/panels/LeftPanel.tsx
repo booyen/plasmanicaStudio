@@ -1,5 +1,6 @@
 // Vibes panel (left HUD): theme presets, surprise-me, and the engine picker.
-import { Dice5 } from 'lucide-react';
+import { useState } from 'react';
+import { Dice5, Link2 } from 'lucide-react';
 import { Section } from './Section.js';
 import { Chip } from '../components/ui/chip.js';
 import { Button } from '../components/ui/button.js';
@@ -7,11 +8,25 @@ import { useConfigStore } from '../stores/config.js';
 import { THEME_NAMES } from '../lib/themes.js';
 import { applyTheme } from '../lib/applyTheme.js';
 import { surprise } from '../lib/surprise.js';
+import { shareUrl } from '../share.js';
 
 export function LeftPanel() {
   const setConfig = useConfigStore((s) => s.setConfig);
+  const [copied, setCopied] = useState(false);
   const applyVibe = (name: string) =>
     setConfig(applyTheme(name, useConfigStore.getState().config));
+
+  const copyLink = async () => {
+    try {
+      const url = shareUrl(useConfigStore.getState().config);
+      await navigator.clipboard.writeText(url);
+      window.history.replaceState(null, '', url);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard blocked */
+    }
+  };
 
   return (
     <aside className="hud-panel pointer-events-auto absolute left-4 top-4 z-10 flex w-[218px] flex-col overflow-hidden rounded-[12px] border border-border bg-card/85 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.75)] backdrop-blur-xl">
@@ -35,6 +50,11 @@ export function LeftPanel() {
           <div className="flex flex-wrap gap-1.5">
             <Chip active>Plasma</Chip>
           </div>
+        </Section>
+        <Section title="Share">
+          <Button size="full" onClick={copyLink}>
+            <Link2 className="h-3.5 w-3.5" /> {copied ? 'link copied' : 'copy share link'}
+          </Button>
         </Section>
       </div>
     </aside>

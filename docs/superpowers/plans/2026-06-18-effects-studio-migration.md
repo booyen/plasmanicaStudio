@@ -212,10 +212,10 @@
 **Interfaces:**
 - Produces: `encodeShare(cfg): string`, `decodeShare(hash): CoreConfig` (zod-validated); hash route works on static hosting.
 
-- [ ] **Step 1:** Implement encode/decode with lz-string + zod validation + clamp.
-- [ ] **Step 2:** On mount, if `#s=` present, restore config into the store.
-- [ ] **Step 3:** Parity checklist pass: every legacy feature works; config round-trips; goldens green → legacy HTML deletable.
-- [ ] **Step 4:** Commit `feat(studio): share links + M1 parity sign-off`.
+- [x] **Step 1:** Implement encode/decode with lz-string + zod validation + clamp.
+- [x] **Step 2:** On mount, if `#s=` present, restore config into the store.
+- [x] **Step 3:** Parity checklist pass: every legacy feature works; config round-trips; goldens green → legacy HTML deletable (kept as reference; safe to delete).
+- [x] **Step 4:** Commit `feat(studio): share links + M1 parity sign-off`.
 
 ---
 
