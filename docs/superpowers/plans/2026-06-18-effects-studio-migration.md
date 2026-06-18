@@ -120,10 +120,10 @@
 **Interfaces:**
 - Produces: a stage frame sized to the selected export aspect (16:9 / 1:1 / 9:16 / custom) centered on an infinite canvas; the `PlasmaCanvas` renders inside the frame; viewport transform (pan x/y, zoom) applied via CSS transform on the frame wrapper, canvas backing-store sized to frame, not viewport.
 
-- [ ] **Step 1:** `useViewport` — `{x,y,zoom}`, wheel-zoom anchored at cursor, drag-pan, `fit()` and `reset()`.
-- [ ] **Step 2:** `Stage` renders a centered frame (aspect from store) with the canvas inside; checkerboard/dim backdrop around it.
-- [ ] **Step 3:** Aspect selector updates frame + canvas backing size; renderer `resize()` called.
-- [ ] **Step 4:** Commit `feat(studio): artboard stage with zoom/pan`.
+- [x] **Step 1:** `useViewport` — `{x,y,zoom}`, wheel-zoom anchored at cursor, drag-pan, `fit()` and `reset()`.
+- [x] **Step 2:** `Stage` renders a centered frame (aspect from store) with the canvas inside; checkerboard/dim backdrop around it.
+- [x] **Step 3:** Aspect selector updates frame + canvas backing size; renderer `resize()` called.
+- [x] **Step 4:** Commit `feat(studio): artboard stage with zoom/pan`.
 
 ---
 

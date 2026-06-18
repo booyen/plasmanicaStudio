@@ -1,0 +1,25 @@
+// Studio-only stage state (NOT part of CoreConfig — aspect is an export/canvas
+// concern, the engine never sees it). Holds the selected export aspect; the
+// artboard frame and the canvas backing-store size derive from it.
+import { create } from 'zustand';
+
+export type AspectKey = '16:9' | '1:1' | '9:16';
+
+/** Design resolution of the artboard frame per aspect (longest edge = 1280/720). */
+export const ASPECTS: Record<AspectKey, { w: number; h: number; label: string }> = {
+  '16:9': { w: 1280, h: 720, label: '16:9' },
+  '1:1': { w: 720, h: 720, label: '1:1' },
+  '9:16': { w: 405, h: 720, label: '9:16' },
+};
+
+export const ASPECT_KEYS = Object.keys(ASPECTS) as AspectKey[];
+
+type StageStore = {
+  aspect: AspectKey;
+  setAspect: (a: AspectKey) => void;
+};
+
+export const useStageStore = create<StageStore>((set) => ({
+  aspect: '16:9',
+  setAspect: (aspect) => set({ aspect }),
+}));

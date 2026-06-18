@@ -1,9 +1,10 @@
-// App shell. M0: a full-bleed live canvas driven by the config store.
-// Panels + artboard stage arrive in Tasks 5–6.
+// App shell. M0 + Task 5: the live canvas now lives inside a pan/zoom artboard
+// stage. Left/right panels arrive in Task 6.
 import { useCallback } from 'react';
 import { PlasmaCanvas } from '@effects/react';
 import type { PlasmaRenderer } from '@effects/core';
 import { useConfigStore } from './stores/config.js';
+import { Stage } from './canvas/Stage.js';
 
 export function App() {
   // Bind the renderer to the store outside React: subscribe() pushes config
@@ -16,7 +17,9 @@ export function App() {
 
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
-      <PlasmaCanvas onReady={onReady} style={{ width: '100%', height: '100%', display: 'block' }} />
+      <Stage>
+        <PlasmaCanvas onReady={onReady} style={{ width: '100%', height: '100%', display: 'block' }} />
+      </Stage>
     </div>
   );
 }
