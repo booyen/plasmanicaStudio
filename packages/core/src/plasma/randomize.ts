@@ -20,6 +20,7 @@ export const LOCK_GROUPS: LockGroup[] = [
     paths: ['turbulence', 'flow', 'coverage', 'contrast', 'visibility', 'grain', 'gravity'],
   },
   { key: 'cursor', label: 'Cursor', paths: ['cursor'] },
+  { key: 'overlay', label: 'Overlay', paths: ['overlay'] },
 ];
 
 const GROUP_KEYS = new Set(LOCK_GROUPS.map((g) => g.key));
@@ -95,15 +96,41 @@ function rollCandidate(): CoreConfig {
   return themeToConfig(make(), defaultConfig);
 }
 
+/** Small fast deterministic PRNG → [0,1). */
+export function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 /**
  * Roll a new look, then restore every locked path from `current`. Unlocked fields
  * are re-rolled (or reset to defaults if the vibe doesn't set them); locked ones
- * are preserved. Always parseConfig'd, so the result is valid + clamped.
+ * are preserved. A `seed` makes it deterministic (same seed + same locks + same
+ * locked values ⇒ deep-equal); omit it for a fresh random seed. The result always
+ * carries the seed that produced it. Always parseConfig'd, so it's valid + clamped.
  */
-export function randomizeConfig(current: CoreConfig, locks: Record<string, boolean>): CoreConfig {
-  let candidate: CoreConfig = rollCandidate();
+export function randomizeConfig(
+  current: CoreConfig,
+  locks: Record<string, boolean>,
+  seed?: number,
+): CoreConfig {
+  const usedSeed = seed != null ? seed >>> 0 : (Math.random() * 0x100000000) >>> 0;
+  const orig = Math.random;
+  let candidate: CoreConfig;
+  try {
+    Math.random = mulberry32(usedSeed); // verbatim THEMES call Math.random — seed them
+    candidate = rollCandidate();
+  } finally {
+    Math.random = orig;
+  }
   for (const p of lockedRestorePaths(locks)) {
     candidate = setByPath(candidate, p, getByPath(current, p));
   }
+  candidate = setByPath(candidate, 'seed', usedSeed);
   return parseConfig(candidate);
 }
