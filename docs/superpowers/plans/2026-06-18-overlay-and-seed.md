@@ -31,7 +31,7 @@
 - Consumes: existing `num`, `hex`, `inList` zod helpers in `config.ts`.
 - Produces: `CoreConfig.overlay: { type, blend, opacity, colorA, alphaA, colorB, alphaB, angleDeg, center, radius }`, `CoreConfig.seed: number`; `OVERLAY_TYPES = ['none','color','linear','radial']`, `OVERLAY_BLENDS = ['normal','multiply','screen','overlay']`.
 
-- [ ] **Step 1: Write the failing tests** — append to `config.test.ts`:
+- [x] **Step 1: Write the failing tests** — append to `config.test.ts`:
 
 ```ts
 import { OVERLAY_TYPES, OVERLAY_BLENDS } from './config.js';
@@ -66,12 +66,12 @@ describe('overlay + seed schema', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `pnpm --filter @effects/core exec vitest run src/plasma/config.test.ts`
 Expected: FAIL (`OVERLAY_TYPES` not exported; `overlay`/`seed` undefined).
 
-- [ ] **Step 3: Add the defaults** — in `config-defaults.ts`, add to the `defaultConfig` object (before the closing `}`):
+- [x] **Step 3: Add the defaults** — in `config-defaults.ts`, add to the `defaultConfig` object (before the closing `}`):
 
 ```ts
   seed: 1,
@@ -89,7 +89,7 @@ Expected: FAIL (`OVERLAY_TYPES` not exported; `overlay`/`seed` undefined).
   },
 ```
 
-- [ ] **Step 4: Add the schema** — in `config.ts`, before `export const PlasmaConfig`:
+- [x] **Step 4: Add the schema** — in `config.ts`, before `export const PlasmaConfig`:
 
 ```ts
 export const OVERLAY_TYPES = ['none', 'color', 'linear', 'radial'] as const;
@@ -125,12 +125,12 @@ Then add these fields inside the `z.object({ ... })` (alongside `cursor`):
 
 > Note: `inList` returns `z.string()`, so `overlay.type`/`blend` are typed `string`. That's fine — the renderer maps them. If you want the literal union, leave as-is (the values are validated at runtime).
 
-- [ ] **Step 5: Run to verify it passes**
+- [x] **Step 5: Run to verify it passes**
 
 Run: `pnpm --filter @effects/core exec vitest run src/plasma/config.test.ts`
 Expected: PASS (all, including the existing `defaultConfig === parseConfig({})` guard).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/core/src/plasma/config.ts packages/core/src/plasma/config-defaults.ts packages/core/src/plasma/config.test.ts
@@ -150,7 +150,7 @@ git commit -m "feat(core): overlay + seed config schema"
 - Consumes: none (self-contained).
 - Produces: `COMPOSITE_FRAG: string`; `oklabMix(c0:[number,number,number], c1:[number,number,number], t:number): [number,number,number]` (rgb 0..1); `OVERLAY_TYPE_INDEX: Record<string,number>` (`none:0,color:1,linear:2,radial:3`), `OVERLAY_BLEND_INDEX: Record<string,number>` (`normal:0,multiply:1,screen:2,overlay:3`).
 
-- [ ] **Step 1: Write the failing test** — `overlay.test.ts`:
+- [x] **Step 1: Write the failing test** — `overlay.test.ts`:
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -191,12 +191,12 @@ describe('overlay constants', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `pnpm --filter @effects/core exec vitest run src/plasma/overlay.test.ts`
 Expected: FAIL (module missing).
 
-- [ ] **Step 3: Implement `overlay.ts`**
+- [x] **Step 3: Implement `overlay.ts`**
 
 ```ts
 // Hand-written overlay composite (the legacy has no overlay). OKLab helpers here
@@ -276,18 +276,18 @@ void main(){
 }`;
 ```
 
-- [ ] **Step 4: Re-export** — add to `packages/core/src/plasma/index.ts`:
+- [x] **Step 4: Re-export** — add to `packages/core/src/plasma/index.ts`:
 
 ```ts
 export * from './overlay.js';
 ```
 
-- [ ] **Step 5: Run to verify it passes**
+- [x] **Step 5: Run to verify it passes**
 
 Run: `pnpm --filter @effects/core exec vitest run src/plasma/overlay.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/core/src/plasma/overlay.ts packages/core/src/plasma/overlay.test.ts packages/core/src/plasma/index.ts
@@ -305,13 +305,13 @@ git commit -m "feat(core): overlay composite GLSL + OKLab helpers"
 - Consumes: `COMPOSITE_FRAG`, `OVERLAY_TYPE_INDEX`, `OVERLAY_BLEND_INDEX` (Task 2); `makeProgram`, `hex2rgb` (`gl.ts`).
 - Produces: `renderAt(t)` now renders plasma→FBO then composites→screen; `setConfig` overlay changes are uniform-only (no recompile). No public signature changes.
 
-- [ ] **Step 1: Add imports** — top of `renderer.ts`:
+- [x] **Step 1: Add imports** — top of `renderer.ts`:
 
 ```ts
 import { COMPOSITE_FRAG, OVERLAY_TYPE_INDEX, OVERLAY_BLEND_INDEX } from './overlay.js';
 ```
 
-- [ ] **Step 2: Add fields** — in the class, near the flowmap fields:
+- [x] **Step 2: Add fields** — in the class, near the flowmap fields:
 
 ```ts
   // overlay composite (plasma → FBO → composite → screen)
@@ -335,7 +335,7 @@ import { COMPOSITE_FRAG, OVERLAY_TYPE_INDEX, OVERLAY_BLEND_INDEX } from './overl
   private ovRadius = 0.75;
 ```
 
-- [ ] **Step 3: Init the composite program** — in the constructor, after `this.initFlow();`:
+- [x] **Step 3: Init the composite program** — in the constructor, after `this.initFlow();`:
 
 ```ts
     this.initComposite();
@@ -374,7 +374,7 @@ And add the method (near `initFlow`):
   }
 ```
 
-- [ ] **Step 4: Map overlay config → internal** — in `applyConfigInternal(c)`, before the cursor mapping:
+- [x] **Step 4: Map overlay config → internal** — in `applyConfigInternal(c)`, before the cursor mapping:
 
 ```ts
     const ov = c.overlay;
@@ -390,7 +390,7 @@ And add the method (near `initFlow`):
     this.ovRadius = ov.radius;
 ```
 
-- [ ] **Step 5: Rewrite `renderAt`** — replace the body so plasma draws into the FBO, then composite to screen:
+- [x] **Step 5: Rewrite `renderAt`** — replace the body so plasma draws into the FBO, then composite to screen:
 
 ```ts
   /** Render one frame at an explicit time (used by exporters + the loop). */
@@ -437,7 +437,7 @@ And add the method (near `initFlow`):
 
 > Note: `setUniforms` still binds the flowmap texture to TEXTURE0 for the plasma pass; the composite pass re-binds TEXTURE0 to `plasmaTex` afterward, so there's no conflict.
 
-- [ ] **Step 6: Dispose the new resources** — in `dispose()`, before `this.program = null;`:
+- [x] **Step 6: Dispose the new resources** — in `dispose()`, before `this.program = null;`:
 
 ```ts
     if (this.compProg) gl.deleteProgram(this.compProg);
@@ -445,17 +445,17 @@ And add the method (near `initFlow`):
     if (this.plasmaFBO) gl.deleteFramebuffer(this.plasmaFBO);
 ```
 
-- [ ] **Step 7: Run the smoke + existing core tests**
+- [x] **Step 7: Run the smoke + existing core tests**
 
 Run: `pnpm --filter @effects/core test`
 Expected: PASS (renderer smoke test still constructs against the stub; no GL executed in node).
 
-- [ ] **Step 8: Typecheck**
+- [x] **Step 8: Typecheck**
 
 Run: `pnpm --filter @effects/core exec tsc -p tsconfig.json --noEmit`
 Expected: no output (clean).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add packages/core/src/plasma/renderer.ts
@@ -474,7 +474,7 @@ git commit -m "feat(core): two-pass renderer with overlay composite"
 - Consumes: `CoreConfig`, `defaultConfig`, `THEMES`, `THEME_NAMES`.
 - Produces: `randomizeConfig(current: CoreConfig, locks: Record<string,boolean>, seed?: number): CoreConfig` (result carries `seed`); `mulberry32(seed:number): () => number`; `LOCK_GROUPS` gains `{ key:'overlay', label:'Overlay', paths:['overlay'] }`.
 
-- [ ] **Step 1: Write the failing tests** — append to `randomize.test.ts`:
+- [x] **Step 1: Write the failing tests** — append to `randomize.test.ts`:
 
 ```ts
 import { mulberry32 } from './randomize.js';
@@ -512,18 +512,18 @@ describe('seeded randomize', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `pnpm --filter @effects/core exec vitest run src/plasma/randomize.test.ts`
 Expected: FAIL (`mulberry32` missing; `seed` not set; `overlay` group absent).
 
-- [ ] **Step 3: Add the overlay lock group** — in `randomize.ts`, add to the `LOCK_GROUPS` array (after `cursor`):
+- [x] **Step 3: Add the overlay lock group** — in `randomize.ts`, add to the `LOCK_GROUPS` array (after `cursor`):
 
 ```ts
   { key: 'overlay', label: 'Overlay', paths: ['overlay'] },
 ```
 
-- [ ] **Step 4: Add `mulberry32`** — in `randomize.ts`:
+- [x] **Step 4: Add `mulberry32`** — in `randomize.ts`:
 
 ```ts
 /** Small fast deterministic PRNG → [0,1). */
@@ -538,7 +538,7 @@ export function mulberry32(seed: number): () => number {
 }
 ```
 
-- [ ] **Step 5: Thread the seed through `randomizeConfig`** — replace the function:
+- [x] **Step 5: Thread the seed through `randomizeConfig`** — replace the function:
 
 ```ts
 export function randomizeConfig(
@@ -566,12 +566,12 @@ export function randomizeConfig(
 
 > `rollCandidate()` already exists (rolls a random THEME over `defaultConfig`); it now runs under the seeded `Math.random`.
 
-- [ ] **Step 6: Run to verify it passes**
+- [x] **Step 6: Run to verify it passes**
 
 Run: `pnpm --filter @effects/core test`
 Expected: PASS (all core tests, incl. the all-locked-deep-equal one — `seed` is excluded from groups but `randomizeConfig` sets it to the same value when the seed arg is fixed; the existing all-locked test passes no seed, so add a seed there).
 
-- [ ] **Step 7: Fix the all-locked test for the seed field** — in the existing `'all groups locked → output deep-equals current'` test, pass the current seed so the metadata matches:
+- [x] **Step 7: Fix the all-locked test for the seed field** — in the existing `'all groups locked → output deep-equals current'` test, pass the current seed so the metadata matches:
 
 ```ts
     const cur = parseConfig({ ...defaultConfig, speed: 0.5, scalePct: 130, palette: ['#abcdef'], bg: '#111111' });
@@ -581,7 +581,7 @@ Expected: PASS (all core tests, incl. the all-locked-deep-equal one — `seed` i
 
 Run again: `pnpm --filter @effects/core test` → Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add packages/core/src/plasma/randomize.ts packages/core/src/plasma/randomize.test.ts
@@ -601,7 +601,7 @@ git commit -m "feat(core): seeded randomize + overlay lock group"
 - Consumes: `useConfigStore` (`set`, config), `OVERLAY_TYPES`, `OVERLAY_BLENDS` (`@effects/core`), `ParamSlider`, `Chip`, `Select`, `Section`.
 - Produces: an `<OverlayControls/>` component writing to `overlay.*` paths.
 
-- [ ] **Step 1: Add overlay slider specs** — in `spec.ts`, add to the `PARAMS` object:
+- [x] **Step 1: Add overlay slider specs** — in `spec.ts`, add to the `PARAMS` object:
 
 ```ts
   ovOpacity: { key: 'ovOpacity', label: 'opacity', path: 'overlay.opacity', min: 0, max: 1, step: 0.01, decimals: 2 },
@@ -613,7 +613,7 @@ git commit -m "feat(core): seeded randomize + overlay lock group"
   ovCenterY: { key: 'ovCenterY', label: 'center y', path: 'overlay.center.1', min: -1, max: 2, step: 0.01, decimals: 2 },
 ```
 
-- [ ] **Step 2: Implement `OverlayControls.tsx`**
+- [x] **Step 2: Implement `OverlayControls.tsx`**
 
 ```tsx
 // Overlay group: gradient/color type, blend mode, opacity, two color+alpha stops,
@@ -687,7 +687,7 @@ export function OverlayControls() {
 }
 ```
 
-- [ ] **Step 3: Add the Overlay section to `RightPanel.tsx`** — add the import:
+- [x] **Step 3: Add the Overlay section to `RightPanel.tsx`** — add the import:
 
 ```tsx
 import { OverlayControls } from './controls/OverlayControls.js';
@@ -701,12 +701,12 @@ And add a `Section` after the `Busyness` section, before the `Export` section:
         </Section>
 ```
 
-- [ ] **Step 4: Typecheck + build**
+- [x] **Step 4: Typecheck + build**
 
 Run: `pnpm --filter studio exec tsc --noEmit && pnpm --filter studio exec vite build`
 Expected: clean typecheck; successful build.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 rm -rf apps/studio/dist
@@ -728,7 +728,7 @@ git commit -m "feat(studio): overlay panel controls"
 - Consumes: `randomizeConfig` (`@effects/core`), `useConfigStore`.
 - Produces: `surprise()` rolls a fresh seed; a seed input + dice in the left panel; one new golden.
 
-- [ ] **Step 1: Update `surprise.ts`** to roll a fresh seed each time:
+- [x] **Step 1: Update `surprise.ts`** to roll a fresh seed each time:
 
 ```ts
 // Surprise-me: re-roll unlocked config with a NEW random seed (stored in config).
@@ -747,7 +747,7 @@ export function rerollWithSeed(seed: number) {
 }
 ```
 
-- [ ] **Step 2: Add the seed control to `LeftPanel.tsx`** — add imports:
+- [x] **Step 2: Add the seed control to `LeftPanel.tsx`** — add imports:
 
 ```tsx
 import { rerollWithSeed } from '../lib/surprise.js';
@@ -775,12 +775,12 @@ Add a seed row inside the `Vibes` `Section`, right under the surprise button:
 
 (Note: `surprise` is already imported and wired to the surprise button + Space tap; no change there.)
 
-- [ ] **Step 3: Typecheck + build**
+- [x] **Step 3: Typecheck + build**
 
 Run: `pnpm --filter studio exec tsc --noEmit && pnpm --filter studio exec vite build`
 Expected: clean.
 
-- [ ] **Step 4: Add an overlay visual golden** — in `tests/visual/plasma.spec.ts`, add to the `SAMPLES` array:
+- [x] **Step 4: Add an overlay visual golden** — in `tests/visual/plasma.spec.ts`, add to the `SAMPLES` array:
 
 ```ts
   {
@@ -793,13 +793,13 @@ Expected: clean.
   },
 ```
 
-- [ ] **Step 5: Generate the new baseline + verify existing goldens still pass**
+- [x] **Step 5: Generate the new baseline + verify existing goldens still pass**
 
 Run: `pnpm exec playwright test --update-snapshots`
 Then verify stability: `pnpm exec playwright test`
 Expected: all pass. If the two-pass change shifted existing baselines beyond tolerance (it should not — plasma is a fullscreen shader with no MSAA-relevant edges), inspect the diff; if it's an imperceptible global shift, the `--update-snapshots` run already refreshed them — re-confirm with a second `pnpm exec playwright test`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 rm -rf apps/studio/dist
@@ -813,18 +813,18 @@ git commit -m "feat(studio): seed control + seeded surprise-me + overlay golden"
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Full test suite**
+- [x] **Step 1: Full test suite**
 
 Run: `pnpm test` (turbo: core + studio) and `pnpm exec playwright test`
 Expected: all green.
 
-- [ ] **Step 2: Manual visual check** — start `pnpm studio`, then in the running app:
+- [x] **Step 2: Manual visual check** — start `pnpm studio`, then in the running app:
   - Right panel → Overlay → pick `linear`, set blend `screen`, drag opacity/alphas → overlay updates live.
   - Left panel → surprise me → seed field changes; type the previous seed back + it reproduces the look.
   - Lock the Overlay group, surprise me → overlay preserved, rest re-rolls.
   - Export → save PNG → confirm the overlay is baked into the file.
 
-- [ ] **Step 3: Update the spec status** — set the spec doc `Status:` to `implemented`. Commit:
+- [x] **Step 3: Update the spec status** — set the spec doc `Status:` to `implemented`. Commit:
 
 ```bash
 git add docs/superpowers/specs/2026-06-18-overlay-and-seed-design.md

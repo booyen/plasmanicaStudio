@@ -1,6 +1,6 @@
 # Overlay + Seeded Randomize — Design Spec
 
-**Status:** approved (design forks confirmed 2026-06-18)
+**Status:** implemented (2026-06-18)
 **Depends on:** the M1 engine/studio (Tasks 0–9, committed).
 
 ## Goal
