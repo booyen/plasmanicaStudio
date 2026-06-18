@@ -11,7 +11,15 @@ const isTyping = (e: KeyboardEvent) => {
   return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
 };
 
-export function Stage({ children }: { children: ReactNode }) {
+export function Stage({
+  children,
+  overlay,
+  onSpaceTap,
+}: {
+  children: ReactNode;
+  overlay?: ReactNode;
+  onSpaceTap?: () => void;
+}) {
   const aspect = useStageStore((s) => s.aspect);
   const frame = ASPECTS[aspect];
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,6 +34,11 @@ export function Stage({ children }: { children: ReactNode }) {
 
   const [spaceDown, setSpaceDown] = useState(false);
   const [panning, setPanning] = useState(false);
+  // True once a pan drag moves during a Space press, so a bare Space tap
+  // (press+release, no drag) can fire surprise-me instead of panning.
+  const spaceMoved = useRef(false);
+  const onSpaceTapRef = useRef(onSpaceTap);
+  onSpaceTapRef.current = onSpaceTap;
 
   // Native non-passive wheel so we can preventDefault the page scroll.
   useEffect(() => {
@@ -44,11 +57,15 @@ export function Stage({ children }: { children: ReactNode }) {
     const down = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !isTyping(e)) {
         e.preventDefault();
+        if (!e.repeat) spaceMoved.current = false;
         setSpaceDown(true);
       }
     };
     const up = (e: KeyboardEvent) => {
-      if (e.code === 'Space') setSpaceDown(false);
+      if (e.code === 'Space') {
+        setSpaceDown(false);
+        if (!spaceMoved.current) onSpaceTapRef.current?.(); // bare tap = surprise-me
+      }
     };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
@@ -72,7 +89,10 @@ export function Stage({ children }: { children: ReactNode }) {
     }
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    if (panning) movePan(e.clientX, e.clientY);
+    if (panning) {
+      if (spaceDown) spaceMoved.current = true;
+      movePan(e.clientX, e.clientY);
+    }
   };
   const onPointerUp = () => {
     if (panning) {
@@ -121,6 +141,7 @@ export function Stage({ children }: { children: ReactNode }) {
           }}
         >
           {children}
+          {overlay}
         </div>
       </div>
 

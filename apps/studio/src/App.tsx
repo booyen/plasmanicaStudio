@@ -1,25 +1,59 @@
-// App shell. M0 + Task 5: the live canvas now lives inside a pan/zoom artboard
-// stage. Left/right panels arrive in Task 6.
-import { useCallback } from 'react';
+// Studio shell: pan/zoom artboard with the live canvas, flanked by the left
+// (vibes) and right (properties) HUD panels. The renderer is bound to the
+// stores outside React; only the panels re-render on edits.
+import { useCallback, useEffect } from 'react';
 import { PlasmaCanvas } from '@effects/react';
 import type { PlasmaRenderer } from '@effects/core';
 import { useConfigStore } from './stores/config.js';
+import { useStageStore } from './stores/stage.js';
 import { Stage } from './canvas/Stage.js';
+import { CenterHandle } from './canvas/CenterHandle.js';
+import { LeftPanel } from './panels/LeftPanel.js';
+import { RightPanel } from './panels/RightPanel.js';
+import { applyTheme, randomThemeName } from './lib/applyTheme.js';
+
+const isField = (t: EventTarget | null) => {
+  const el = t as HTMLElement | null;
+  return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+};
+
+function surprise() {
+  const { config, setConfig } = useConfigStore.getState();
+  setConfig(applyTheme(randomThemeName(), config));
+}
 
 export function App() {
-  // Bind the renderer to the store outside React: subscribe() pushes config
-  // straight to the engine and returns the unsubscribe for PlasmaCanvas cleanup.
-  // App never selects `config`, so it never re-renders on a control edit.
+  const uiHidden = useStageStore((s) => s.uiHidden);
+
+  // Bind the renderer to both stores outside React (config + pause), returning
+  // a combined unsubscribe that PlasmaCanvas runs on dispose.
   const onReady = useCallback((renderer: PlasmaRenderer) => {
     renderer.setConfig(useConfigStore.getState().config);
-    return useConfigStore.subscribe((s) => renderer.setConfig(s.config));
+    const unsubCfg = useConfigStore.subscribe((s) => renderer.setConfig(s.config));
+    const unsubPause = useStageStore.subscribe((s) => renderer.setPaused(s.paused));
+    return () => {
+      unsubCfg();
+      unsubPause();
+    };
+  }, []);
+
+  // H = hide/show UI (Space tap = surprise-me is handled by the Stage).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (isField(e.target)) return;
+      if (e.key === 'h' || e.key === 'H') useStageStore.getState().toggleUI();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   return (
-    <div style={{ position: 'fixed', inset: 0 }}>
-      <Stage>
+    <div className={'fixed inset-0' + (uiHidden ? ' ui-hidden' : '')}>
+      <Stage overlay={<CenterHandle />} onSpaceTap={surprise}>
         <PlasmaCanvas onReady={onReady} style={{ width: '100%', height: '100%', display: 'block' }} />
       </Stage>
+      <LeftPanel />
+      <RightPanel />
     </div>
   );
 }

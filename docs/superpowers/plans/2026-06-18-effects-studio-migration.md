@@ -139,11 +139,11 @@
 - Consumes: `useConfigStore`, `FIELD_NAMES`/`MATERIAL_NAMES`/`SHAPE_NAMES`, `THEMES`, `GRADIENTS`.
 - Produces: every legacy control, writing straight to the store (slider drag → store → renderer subscribe, no React re-render per drag).
 
-- [ ] **Step 1:** Build the `Slider` control (editable value box, center tick, inverted-scale awareness) and chip/tab primitives with shadcn + Tailwind, matching legacy look.
-- [ ] **Step 2:** RightPanel: motion/material/shape tabs + all sliders (speed, detail/busyness, swirl, turbulence, coverage, contrast, visibility, gravity, grain, rotate, scale) + color (palette, bg hex, harmony, gradient presets) + cursor (on, multi-select modes, strength/size/trail/turbulence/lag) + draggable center handle on the stage.
-- [ ] **Step 3:** LeftPanel: 8 theme "vibes", surprise-me (Space), engine list (plasma).
-- [ ] **Step 4:** Hide-UI (H) and keyboard shortcuts.
-- [ ] **Step 5:** Commit `feat(studio): left/right panels at control parity`.
+- [x] **Step 1:** Build the `Slider` control (editable value box, center tick, inverted-scale awareness) and chip/tab primitives with shadcn + Tailwind, matching legacy look.
+- [x] **Step 2:** RightPanel: motion/material/shape tabs + all sliders (speed, detail/busyness, swirl, turbulence, coverage, contrast, visibility, gravity, grain, rotate, scale) + color (palette, bg hex, harmony, gradient presets) + cursor (on, multi-select modes, strength/size/trail/turbulence/lag) + draggable center handle on the stage.
+- [x] **Step 3:** LeftPanel: 8 theme "vibes", surprise-me (Space), engine list (plasma).
+- [x] **Step 4:** Hide-UI (H) and keyboard shortcuts.
+- [x] **Step 5:** Commit `feat(studio): left/right panels at control parity`.
 
 ---
 

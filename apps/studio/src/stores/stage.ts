@@ -17,9 +17,17 @@ export const ASPECT_KEYS = Object.keys(ASPECTS) as AspectKey[];
 type StageStore = {
   aspect: AspectKey;
   setAspect: (a: AspectKey) => void;
+  paused: boolean;
+  setPaused: (p: boolean) => void;
+  uiHidden: boolean;
+  toggleUI: () => void;
 };
 
 export const useStageStore = create<StageStore>((set) => ({
   aspect: '16:9',
   setAspect: (aspect) => set({ aspect }),
+  paused: false,
+  setPaused: (paused) => set({ paused }),
+  uiHidden: false,
+  toggleUI: () => set((s) => ({ uiHidden: !s.uiHidden })),
 }));

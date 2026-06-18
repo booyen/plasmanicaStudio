@@ -3,6 +3,7 @@
 // to this store OUTSIDE React (see App.tsx), so control edits never re-render the tree.
 import { create } from 'zustand';
 import { type CoreConfig, defaultConfig, parseConfig } from '@effects/core';
+import { setByPath } from '../lib/path.js';
 
 export type ConfigStore = {
   config: CoreConfig;
@@ -15,21 +16,6 @@ export type ConfigStore = {
   toggleLock: (key: string) => void;
   isLocked: (key: string) => boolean;
 };
-
-/** Immutable nested set by dotted path. Arrays are indexed by numeric string keys. */
-function setByPath<T>(root: T, path: string, value: unknown): T {
-  const keys = path.split('.');
-  const clone: any = Array.isArray(root) ? [...(root as any)] : { ...(root as any) };
-  let cur = clone;
-  for (let i = 0; i < keys.length - 1; i++) {
-    const k = keys[i];
-    const child = cur[k];
-    cur[k] = Array.isArray(child) ? [...child] : { ...child };
-    cur = cur[k];
-  }
-  cur[keys[keys.length - 1]] = value;
-  return clone;
-}
 
 export const useConfigStore = create<ConfigStore>((set, get) => ({
   config: defaultConfig,
