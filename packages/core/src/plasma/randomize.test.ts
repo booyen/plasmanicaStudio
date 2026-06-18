@@ -27,6 +27,18 @@ describe('seeded randomize', () => {
     const out = randomizeConfig(cur, { overlay: true }, 99);
     expect(out.overlay).toEqual(cur.overlay);
   });
+  it('explores the full space — many distinct fields + procedural palettes across seeds', () => {
+    const motions = new Set<string>();
+    const firstColors = new Set<string>();
+    for (let s = 1; s <= 50; s++) {
+      const c = randomizeConfig(defaultConfig, {}, s);
+      motions.add(c.motion);
+      firstColors.add(c.palette[0]);
+    }
+    expect(motions.size).toBeGreaterThan(5); // not stuck cycling a few themes
+    expect(firstColors.size).toBeGreaterThan(20); // procedural palettes → lots of colors
+  });
+
   it('mulberry32 is deterministic + in [0,1)', () => {
     const a = mulberry32(42)(), b = mulberry32(42)();
     expect(a).toBe(b);

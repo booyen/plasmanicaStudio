@@ -2,7 +2,9 @@
 // group or individual param. Lives in core so the engine, studio, and embed can
 // all randomize consistently. Theme mapping mirrors the legacy applyConfig.
 import { type CoreConfig, defaultConfig, parseConfig } from './config.js';
-import { THEMES, THEME_NAMES } from './themes.js';
+import { FIELD_NAMES, MATERIAL_NAMES } from './shaders.js';
+import { SHAPE_NAMES } from './data.js';
+import { THEMES, THEME_NAMES, generatePalette, hsl2hex } from './themes.js';
 
 export type LockGroup = { key: string; label: string; paths: string[] };
 
@@ -90,10 +92,48 @@ export function randomThemeName(): string {
   return THEME_NAMES[Math.floor(Math.random() * THEME_NAMES.length)];
 }
 
-/** A fresh random look: a random vibe applied over the defaults. */
+const RR = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
+const choose = <T>(a: readonly T[]): T => a[Math.floor(Math.random() * a.length)];
+const HARMONIES = ['analogous', 'complementary', 'triadic', 'mono', 'random'] as const;
+
+/**
+ * A full-spectrum random look: any field/material/shape from the complete lists,
+ * a procedural *harmonious* palette (OKLCH-ish via generatePalette), and wide but
+ * tasteful parameter ranges. Far more varied than cycling the 8 curated vibes —
+ * the vibes stay available as the LeftPanel chips.
+ */
+function randomLook(): CoreConfig {
+  const palette = generatePalette(choose(HARMONIES));
+  const bg = hsl2hex(Math.floor(RR(0, 360)), RR(0.3, 0.7), RR(0.02, 0.07)); // dark tinted
+  return parseConfig({
+    ...defaultConfig,
+    motion: choose(FIELD_NAMES),
+    material: choose(MATERIAL_NAMES),
+    shape: Math.random() < 0.6 ? 'Free' : choose(SHAPE_NAMES), // bias to Free, allow others
+    palette,
+    bg,
+    speed: RR(0.1, 0.6),
+    scalePct: RR(70, 180),
+    swirl: RR(0.2, 1.2),
+    turbulence: RR(0.3, 1.4),
+    detail: RR(0.6, 1.8),
+    flow: { angleDeg: RR(0, 360), amount: Math.random() < 0.5 ? 0 : RR(0.05, 0.35) },
+    coverage: RR(0.35, 1.0),
+    contrast: RR(0.9, 1.7),
+    gravity: RR(-0.4, 0.4),
+    grain: RR(0, 0.12),
+    rotateDeg: Math.random() < 0.5 ? 0 : RR(-180, 180),
+  });
+}
+
+/** A fresh random look for surprise-me. Occasionally (~25%) a curated vibe, else
+ *  full-spectrum random — variety with the odd hand-tuned gem. */
 function rollCandidate(): CoreConfig {
-  const make = (THEMES as Record<string, () => ThemeOutput>)[randomThemeName()];
-  return themeToConfig(make(), defaultConfig);
+  if (Math.random() < 0.25) {
+    const make = (THEMES as Record<string, () => ThemeOutput>)[randomThemeName()];
+    return themeToConfig(make(), defaultConfig);
+  }
+  return randomLook();
 }
 
 /** Small fast deterministic PRNG → [0,1). */
