@@ -3,6 +3,7 @@ export * from './shaders.js';
 export * from './data.js';
 export * from './themes.js';
 export * from './overlay.js';
+export * from './fallback.js';
 export * from './config.js';
 export * from './renderer.js';
 export * from './randomize.js';

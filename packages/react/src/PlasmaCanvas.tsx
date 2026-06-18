@@ -2,9 +2,9 @@
 // lifetime. The renderer runs entirely outside React — config flows in via the
 // optional `config` prop (controlled use) or via `onReady` (store-driven studio,
 // which subscribes the renderer to a store so slider drags never re-render).
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { PlasmaRenderer, type CoreConfig } from '@effects/core';
+import { PlasmaRenderer, paletteGradientCss, defaultConfig, type CoreConfig } from '@effects/core';
 
 export type PlasmaCanvasProps = {
   /** Controlled config. Omit to drive the renderer entirely via `onReady`. */
@@ -27,12 +27,20 @@ export function PlasmaCanvas({ config, paused, onReady, className, style }: Plas
   configRef.current = config;
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
+  const [failed, setFailed] = useState(false);
 
   // Mount: own the renderer for the canvas' lifetime. StrictMode double-invokes
   // this effect; dispose() is idempotent so the throwaway first renderer is safe.
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const renderer = new PlasmaRenderer(canvas);
+    const canvas = canvasRef.current;
+    if (!canvas) return; // fallback branch rendered a div, not the canvas
+    let renderer: PlasmaRenderer;
+    try {
+      renderer = new PlasmaRenderer(canvas);
+    } catch {
+      setFailed(true); // never-black: WebGL unavailable → CSS gradient fallback
+      return;
+    }
     rendererRef.current = renderer;
     if (configRef.current) renderer.setConfig(configRef.current);
     renderer.resize();
@@ -58,6 +66,18 @@ export function PlasmaCanvas({ config, paused, onReady, className, style }: Plas
   useEffect(() => {
     rendererRef.current?.setPaused(!!paused);
   }, [paused]);
+
+  if (failed) {
+    const cfg = configRef.current ?? defaultConfig;
+    return (
+      <div
+        className={className}
+        style={{ ...style, background: paletteGradientCss(cfg.palette, cfg.bg) }}
+        role="img"
+        aria-label="plasma background (static fallback)"
+      />
+    );
+  }
 
   return <canvas ref={canvasRef} className={className} style={style} />;
 }
