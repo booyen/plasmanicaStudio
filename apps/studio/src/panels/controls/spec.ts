@@ -45,6 +45,13 @@ export const PARAMS = {
   curTrail: { key: 'curTrail', label: 'trail', path: 'cursor.trail', min: 0, max: 1, step: 0.01, decimals: 2 },
   curChurn: { key: 'curChurn', label: 'turbulence', path: 'cursor.turbulence', min: 0, max: 1.5, step: 0.01, decimals: 2 },
   curLag: { key: 'curLag', label: 'lag', path: 'cursor.lag', min: 0, max: 1, step: 0.01, decimals: 2 },
+  ovOpacity: { key: 'ovOpacity', label: 'opacity', path: 'overlay.opacity', min: 0, max: 1, step: 0.01, decimals: 2 },
+  ovAlphaA: { key: 'ovAlphaA', label: 'stop A alpha', path: 'overlay.alphaA', min: 0, max: 1, step: 0.01, decimals: 2 },
+  ovAlphaB: { key: 'ovAlphaB', label: 'stop B alpha', path: 'overlay.alphaB', min: 0, max: 1, step: 0.01, decimals: 2 },
+  ovAngle: { key: 'ovAngle', label: 'angle', path: 'overlay.angleDeg', min: 0, max: 360, step: 1, unit: '°', decimals: 0 },
+  ovRadius: { key: 'ovRadius', label: 'radius', path: 'overlay.radius', min: 0.05, max: 2, step: 0.01, decimals: 2 },
+  ovCenterX: { key: 'ovCenterX', label: 'center x', path: 'overlay.center.0', min: -1, max: 2, step: 0.01, decimals: 2 },
+  ovCenterY: { key: 'ovCenterY', label: 'center y', path: 'overlay.center.1', min: -1, max: 2, step: 0.01, decimals: 2 },
 } satisfies Record<string, ParamSpec>;
 
 export type ParamKey = keyof typeof PARAMS;

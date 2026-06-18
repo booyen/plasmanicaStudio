@@ -9,6 +9,7 @@ import { ColorControls } from './controls/ColorControls.js';
 import { CursorControls } from './controls/CursorControls.js';
 import { CenterPresets } from './controls/CenterPresets.js';
 import { ExportControls } from './controls/ExportControls.js';
+import { OverlayControls } from './controls/OverlayControls.js';
 import { PARAMS } from './controls/spec.js';
 import { Button } from '../components/ui/button.js';
 import { useConfigStore } from '../stores/config.js';
@@ -104,6 +105,9 @@ export function RightPanel() {
           <ParamSlider spec={PARAMS.contrast} />
           <ParamSlider spec={PARAMS.vis} />
           <ParamSlider spec={PARAMS.grain} />
+        </Section>
+        <Section title="Overlay" lockKey="overlay">
+          <OverlayControls />
         </Section>
         <Section title="Export">
           <ExportControls />
