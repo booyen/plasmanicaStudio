@@ -31,6 +31,22 @@ const cursorModes = z.preprocess(
   z.array(z.enum(CURSOR_MODES)),
 );
 
+export const OVERLAY_TYPES = ['none', 'color', 'linear', 'radial'] as const;
+export const OVERLAY_BLENDS = ['normal', 'multiply', 'screen', 'overlay'] as const;
+
+const OVERLAY_DEFAULT = {
+  type: 'none',
+  blend: 'normal',
+  opacity: 1,
+  colorA: '#000000',
+  alphaA: 0.5,
+  colorB: '#000000',
+  alphaB: 0,
+  angleDeg: 0,
+  center: [0.5, 0.5] as [number, number],
+  radius: 0.75,
+};
+
 export const PlasmaConfig = z.object({
   version: z.literal(1).catch(1),
   motion: inList(FIELD_NAMES, 'Classic'),
@@ -75,6 +91,29 @@ export const PlasmaConfig = z.object({
     })
     .catch({ on: true, modes: ['fluid'], strength: 1, size: 0.4, trail: 0.4, turbulence: 0.5, lag: 0.4 })
     .default({ on: true, modes: ['fluid'], strength: 1, size: 0.4, trail: 0.4, turbulence: 0.5, lag: 0.4 }),
+
+  seed: z.preprocess(
+    (v) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 1),
+    z.number(),
+  ),
+  overlay: z
+    .object({
+      type: inList(OVERLAY_TYPES, 'none'),
+      blend: inList(OVERLAY_BLENDS, 'normal'),
+      opacity: num(1, 0, 1),
+      colorA: hex('#000000'),
+      alphaA: num(0.5, 0, 1),
+      colorB: hex('#000000'),
+      alphaB: num(0, 0, 1),
+      angleDeg: num(0, 0, 360),
+      center: z.preprocess(
+        (v) => (Array.isArray(v) && v.length === 2 ? v : [0.5, 0.5]),
+        z.tuple([num(0.5, -1, 2), num(0.5, -1, 2)]),
+      ),
+      radius: num(0.75, 0.05, 2),
+    })
+    .catch({ ...OVERLAY_DEFAULT })
+    .default({ ...OVERLAY_DEFAULT }),
 });
 
 export type CoreConfig = z.infer<typeof PlasmaConfig>;

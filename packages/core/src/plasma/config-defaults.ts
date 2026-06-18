@@ -28,4 +28,17 @@ export const defaultConfig: CoreConfig = {
   rotateDeg: 0,
   center: [0, 0],
   cursor: { on: true, modes: ['fluid'], strength: 1, size: 0.4, trail: 0.4, turbulence: 0.5, lag: 0.4 },
+  seed: 1,
+  overlay: {
+    type: 'none',
+    blend: 'normal',
+    opacity: 1,
+    colorA: '#000000',
+    alphaA: 0.5,
+    colorB: '#000000',
+    alphaB: 0,
+    angleDeg: 0,
+    center: [0.5, 0.5],
+    radius: 0.75,
+  },
 };
