@@ -3,9 +3,13 @@
 import { z } from 'zod';
 import { FIELD_NAMES, MATERIAL_NAMES } from './shaders.js';
 import { SHAPE_NAMES } from './data.js';
-import { CURSOR_MODES, type CursorMode, defaultConfig as DEFAULTS } from './config-defaults.js';
+import { CURSOR_MODES, type CursorMode } from './config-defaults.js';
 
 export { CURSOR_MODES, type CursorMode };
+// Pure re-export (not a new binding) so importers resolve straight to the zero-dep
+// config-defaults module — keeps zod out of the embed/renderer path. A test asserts
+// `defaultConfig === parseConfig({})`.
+export { defaultConfig } from './config-defaults.js';
 
 // Numeric field: missing/invalid → default; valid → clamped to [min,max].
 const num = (def: number, min: number, max: number) =>
@@ -123,7 +127,3 @@ export function parseConfig(input: unknown): CoreConfig {
   const obj = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
   return PlasmaConfig.parse(obj);
 }
-
-// Canonical default (zero-dep object). Re-exported here for back-compat; a test
-// asserts it equals parseConfig({}) so the hand-written object can't drift.
-export const defaultConfig: CoreConfig = DEFAULTS;

@@ -36,11 +36,27 @@ export class PlasmaBg extends HTMLElement {
       return;
     }
     renderer.setConfig(cfg);
+    renderer.resize();
     const onResize = () => renderer.resize();
     window.addEventListener('resize', onResize);
-    this.cleanup = () => window.removeEventListener('resize', onResize);
-    renderer.resize();
-    renderer.start();
+
+    // prefers-reduced-motion: render one still frame instead of animating.
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const applyMotion = () => {
+      if (mq?.matches) {
+        renderer.stop();
+        renderer.renderAt(renderer.time);
+      } else {
+        renderer.start();
+      }
+    };
+    applyMotion();
+    mq?.addEventListener?.('change', applyMotion);
+
+    this.cleanup = () => {
+      window.removeEventListener('resize', onResize);
+      mq?.removeEventListener?.('change', applyMotion);
+    };
     this.renderer = renderer;
   }
 

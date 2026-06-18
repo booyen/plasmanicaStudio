@@ -13,7 +13,7 @@ const FW = 256; // flowmap resolution
 export class PlasmaRenderer {
   private gl: WebGLRenderingContext;
   private canvas: HTMLCanvasElement;
-  private buf: WebGLBuffer;
+  private buf!: WebGLBuffer; // set in initGL() (constructor + context restore)
   private program: WebGLProgram | null = null;
   private currentFrag = '';
   private loc: Record<string, WebGLUniformLocation | null> = {};
@@ -81,7 +81,11 @@ export class PlasmaRenderer {
   private tAccum = 0;
   private last = 0;
   private raf = 0;
-  private running = false;
+  private running = false; // rAF currently scheduled
+  private wantRunning = false; // host asked to run (start without stop)
+  private onScreen = true; // IntersectionObserver — pause the loop when off-screen
+  private contextLost = false;
+  private io: IntersectionObserver | null = null;
   private paused = false;
   private exporting = false;
   private disposed = false;
@@ -111,19 +115,55 @@ export class PlasmaRenderer {
     if (!gl) throw new Error('WebGL1 not available');
     this.gl = gl;
 
-    this.buf = gl.createBuffer()!;
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-
-    this.initFlow();
-    this.initComposite();
-    this.applyConfigInternal(defaultConfig);
-    this.recompile();
-    this.resize();
+    this.initGL();
 
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerout', this.onPointerOut);
+    canvas.addEventListener('webglcontextlost', this.onContextLost as EventListener);
+    canvas.addEventListener('webglcontextrestored', this.onContextRestored as EventListener);
+
+    // Stop the loop while the canvas is off-screen (saves CPU/GPU in studio + embed).
+    if (typeof IntersectionObserver !== 'undefined') {
+      this.io = new IntersectionObserver(
+        (entries) => {
+          this.onScreen = entries[entries.length - 1].isIntersecting;
+          if (this.onScreen) this.maybeRun();
+          else this.cancelRaf();
+        },
+        { threshold: 0 },
+      );
+      this.io.observe(canvas);
+    }
   }
+
+  /** (Re)create all GL resources from `this.cfg`. Re-run on context restore. */
+  private initGL() {
+    const gl = this.gl;
+    this.buf = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    this.initFlow();
+    this.initComposite();
+    this.applyConfigInternal(this.cfg);
+    this.recompile();
+    this.resize();
+  }
+
+  // WebGL context-loss recovery — config-as-truth makes the rebuild trivial.
+  private onContextLost = (e: Event) => {
+    e.preventDefault(); // required so the context can be restored
+    this.contextLost = true;
+    this.cancelRaf();
+  };
+  private onContextRestored = () => {
+    if (this.disposed) return;
+    this.contextLost = false;
+    this.program = null;
+    this.flowProg = null;
+    this.compProg = null;
+    this.initGL();
+    this.maybeRun();
+  };
 
   // ---- flowmap ----
   private makeFlowTex(): WebGLTexture {
@@ -174,6 +214,9 @@ export class PlasmaRenderer {
       angle: U('u_ovAngle'), center: U('u_ovCenter'), radius: U('u_ovRadius'),
     };
     this.plasmaFBO = gl.createFramebuffer();
+    this.plasmaTex = null; // force ensurePlasmaTarget to (re)allocate
+    this.ptW = 0;
+    this.ptH = 0;
   }
 
   private ensurePlasmaTarget(w: number, h: number) {
@@ -416,13 +459,25 @@ export class PlasmaRenderer {
 
   // ---- loop ----
   start() {
-    if (this.running || this.disposed) return;
+    if (this.disposed) return;
+    this.wantRunning = true;
+    this.maybeRun();
+  }
+
+  stop() {
+    this.wantRunning = false;
+    this.cancelRaf();
+  }
+
+  /** Begin the rAF loop iff the host wants it AND we're on-screen + have a context. */
+  private maybeRun() {
+    if (this.disposed || this.running || !this.wantRunning || !this.onScreen || this.contextLost) return;
     this.running = true;
     this.last = now();
     this.raf = requestAnimationFrame(this.frame);
   }
 
-  stop() {
+  private cancelRaf() {
     this.running = false;
     if (this.raf) cancelAnimationFrame(this.raf);
     this.raf = 0;
@@ -478,7 +533,10 @@ export class PlasmaRenderer {
   }
 
   private frame = (n: number) => {
-    if (this.disposed) return;
+    if (this.disposed || this.contextLost) {
+      this.running = false;
+      return;
+    }
     if (typeof document !== 'undefined' && document.hidden) {
       this.last = n;
       this.raf = requestAnimationFrame(this.frame);
@@ -544,9 +602,12 @@ export class PlasmaRenderer {
     if (this.disposed) return;
     this.disposed = true;
     this.stop();
+    this.io?.disconnect();
     const gl = this.gl;
     this.canvas.removeEventListener('pointermove', this.onPointerMove);
     this.canvas.removeEventListener('pointerout', this.onPointerOut);
+    this.canvas.removeEventListener('webglcontextlost', this.onContextLost as EventListener);
+    this.canvas.removeEventListener('webglcontextrestored', this.onContextRestored as EventListener);
     if (this.program) gl.deleteProgram(this.program);
     if (this.compProg) gl.deleteProgram(this.compProg);
     if (this.plasmaTex) gl.deleteTexture(this.plasmaTex);
