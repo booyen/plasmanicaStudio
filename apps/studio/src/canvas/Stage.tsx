@@ -1,8 +1,8 @@
 // Artboard / infinite-canvas stage. A fixed-aspect frame sits centered on a dim
-// backdrop and pans (space-drag / middle-drag) + zooms (wheel, anchored at the
-// cursor). The plasma canvas renders inside the frame; CSS transform handles the
-// viewport so the engine keeps rendering at the frame's native resolution.
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+// backdrop and pans (drag the backdrop, Space-drag, or middle-drag) + zooms
+// (wheel, anchored at the cursor). The plasma canvas renders inside the frame;
+// CSS transform handles the viewport so the engine keeps its native resolution.
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useViewport } from './useViewport.js';
 import { ASPECTS, ASPECT_KEYS, useStageStore } from '../stores/stage.js';
 
@@ -25,11 +25,14 @@ export function Stage({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Keep the latest frame size readable by fit() without re-creating the hook.
+  // STABLE getter — a fresh arrow here would change fit()'s identity every render
+  // and make the fit-on-aspect effect re-run constantly, stomping zoom/pan.
   const frameRef = useRef(frame);
   frameRef.current = frame;
+  const getFrameSize = useCallback(() => frameRef.current, []);
   const { vp, zoomAt, startPan, movePan, endPan, reset, fit } = useViewport(
     containerRef,
-    () => frameRef.current,
+    getFrameSize,
   );
 
   const [spaceDown, setSpaceDown] = useState(false);
@@ -81,7 +84,11 @@ export function Stage({
   }, [aspect, fit]);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (spaceDown || e.button === 1) {
+    // Left- or middle-drag anywhere on the stage pans. The plasma cursor effect
+    // is hover-driven (pointermove), and pointer-capture routes moves to the
+    // container during a drag, so panning cleanly pauses it — no conflict.
+    // (The center handle / stage controls stopPropagation, so they're exempt.)
+    if (e.button === 0 || e.button === 1) {
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       setPanning(true);
@@ -101,7 +108,7 @@ export function Stage({
     }
   };
 
-  const cursor = panning ? 'grabbing' : spaceDown ? 'grab' : 'default';
+  const cursor = panning ? 'grabbing' : 'grab';
 
   return (
     <div
