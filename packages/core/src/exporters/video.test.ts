@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { seamlessWeight, crossfadeWindow } from './video.js';
+import { seamlessWeight, crossfadeWindow, videoFrameTimes } from './video.js';
 import { buildEmbed } from './embed.js';
 import { defaultConfig } from '../plasma/config-defaults.js';
 
@@ -27,6 +27,28 @@ describe('seamless two-mode crossfade', () => {
       expect(w).toBeGreaterThanOrEqual(prev);
       prev = w;
     }
+  });
+});
+
+describe('videoFrameTimes — fixed timestep, not wall-clock', () => {
+  it('emits exactly L·fps frames spaced by 1/fps, starting at 0', () => {
+    const t = videoFrameTimes(2, 30);
+    expect(t.length).toBe(60);
+    expect(t[0]).toBe(0);
+    expect(t[1] - t[0]).toBeCloseTo(1 / 30, 9);
+    expect(t[t.length - 1]).toBeCloseTo(59 / 30, 9);
+  });
+
+  it('is perfectly evenly spaced (the property the choppy wall-clock loop violated)', () => {
+    const fps = 30;
+    const t = videoFrameTimes(5, fps);
+    for (let i = 1; i < t.length; i++) {
+      expect(t[i] - t[i - 1]).toBeCloseTo(1 / fps, 9);
+    }
+  });
+
+  it('never returns an empty schedule', () => {
+    expect(videoFrameTimes(0, 30).length).toBeGreaterThanOrEqual(1);
   });
 });
 

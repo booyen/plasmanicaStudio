@@ -24,7 +24,7 @@ export function ImageExportModal({ open, onClose }: { open: boolean; onClose: ()
   const [size, setSize] = useState('1920x1080');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
-  const preview = useCanvasPreview(open);
+  const preview = useCanvasPreview(open, { once: true });
 
   const save = async () => {
     const r = rendererRef.current;

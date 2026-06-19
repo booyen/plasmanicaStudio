@@ -5,10 +5,9 @@ import { Modal } from '../../components/ui/modal.js';
 import { Button } from '../../components/ui/button.js';
 import { Select } from '../../components/ui/select.js';
 import { useConfigStore } from '../../stores/config.js';
-import { useCanvasPreview } from '../../lib/useCanvasPreview.js';
 import { rendererRef } from '../../lib/rendererRef.js';
 import { download, exportName } from '../../lib/download.js';
-import { PreviewPane } from './ImageExportModal.js';
+import { LivePreview } from './LivePreview.js';
 
 export function VideoExportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [mode, setMode] = useState<VideoMode>('cont');
@@ -16,7 +15,6 @@ export function VideoExportModal({ open, onClose }: { open: boolean; onClose: ()
   const [qual, setQual] = useState<VideoQuality>('hd');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
-  const preview = useCanvasPreview(open);
 
   const save = async () => {
     const r = rendererRef.current;
@@ -77,7 +75,7 @@ export function VideoExportModal({ open, onClose }: { open: boolean; onClose: ()
           </Button>
           {!busy && status && <span className="text-[11px] text-muted-foreground">{status}</span>}
         </div>
-        <PreviewPane src={preview} label={`${qual === 'hd' ? '1080p' : '720p'} · ${dur}s · ${mode === 'loop' ? 'loop' : 'cont'}`} />
+        <LivePreview active={open} label={`${qual === 'hd' ? '1080p' : '720p'} · ${dur}s · ${mode === 'loop' ? 'loop' : 'cont'}`} />
       </div>
     </Modal>
   );
