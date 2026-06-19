@@ -27,6 +27,8 @@ export class PlasmaRenderer {
   private flu: Record<string, WebGLUniformLocation | null> = {};
   private flowPos = -1;
   private flowFrames = 0;
+  private idleFrames = 0;
+  private flowSettled = true;
 
   // overlay composite (plasma → FBO → composite → screen)
   private compProg: WebGLProgram | null = null;
@@ -190,6 +192,17 @@ export class PlasmaRenderer {
     this.flowRead = this.makeFlowTex();
     this.flowWrite = this.makeFlowTex();
     this.flowFBO = gl.createFramebuffer();
+    this.clearFlow();
+  }
+
+  /** Reset both flowmap textures to the neutral (zero-velocity) state — the same
+   *  value they're born with. Used at init and to snap the field back to a TRUE
+   *  zero when the cursor goes idle: the 8-bit flowmap can't decay below ~1/255,
+   *  so a faint velocity would otherwise stay frozen and permanently warp the
+   *  plasma (the documented WebGL1 quantization limit). */
+  private clearFlow() {
+    const gl = this.gl;
+    if (!this.flowFBO) return;
     for (const tex of [this.flowRead, this.flowWrite]) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.flowFBO);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
@@ -256,7 +269,14 @@ export class PlasmaRenderer {
     gl.uniform1f(this.flu.aspect!, ar);
     gl.uniform2f(this.flu.fmouse!, mfx, mfy);
     gl.uniform2f(this.flu.fvel!, vfx * this.cursorStr, vfy * this.cursorStr);
-    gl.uniform1f(this.flu.present!, this.cursorOn && !this.exporting ? this.mouseAmt * 0.8 : 0.0);
+    // Inject from actual MOVEMENT, not mere presence: a cursor resting on the
+    // canvas (speed≈0) feeds nothing, so the fluid starts releasing the moment you
+    // stop moving — even with the pointer still over the canvas. (Velocity already
+    // drives the stamp via u_fvel; u_present was a presence floor that made the
+    // distortion linger indefinitely under a still cursor.)
+    const moveSpeed = Math.hypot(this.mvX, this.mvY);
+    const moveGate = Math.min(1, Math.max(0, (moveSpeed - 0.0008) / 0.0032));
+    gl.uniform1f(this.flu.present!, this.cursorOn && !this.exporting ? this.mouseAmt * 0.8 * moveGate : 0.0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     const t = this.flowRead;
     this.flowRead = this.flowWrite;
@@ -556,6 +576,21 @@ export class PlasmaRenderer {
     if (!this.exporting && this.flowFrames > 0) {
       this.updateFlow();
       this.flowFrames--;
+      this.dirty = true;
+    }
+    // Track movement-idle (not presence): once the pointer has held still long
+    // enough for the trail to visually decay, snap the flowmap to a true zero so
+    // the canvas returns to pristine instead of holding a frozen quantized imprint.
+    if (Math.hypot(this.mvX, this.mvY) > 0.0008) {
+      this.idleFrames = 0;
+      this.flowSettled = false;
+    } else if (!this.flowSettled) {
+      this.idleFrames++;
+    }
+    if (!this.exporting && !this.flowSettled && this.idleFrames > 240) {
+      this.clearFlow();
+      this.flowSettled = true;
+      this.flowFrames = 0;
       this.dirty = true;
     }
     if (this.cursorOn && this.mouseAmt > 0.005) this.dirty = true;
