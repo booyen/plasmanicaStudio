@@ -45,7 +45,7 @@ float fbm(vec2 p){ float v=0.0,a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=rot
 vec2 asp(){ vec2 uv=v_uv*2.0-1.0; uv.x*=u_res.x/u_res.y;
   if(u_mouseAmt>0.001){ vec3 fmp=texture2D(u_fmap, v_uv).rgb; vec2 fv=(fmp.rg-0.5)*2.0; float fst=clamp(fmp.b,0.0,1.0);
     if(u_cm[0]>0.5){ float fwx=sin(uv.y*2.6+u_time*0.7)*0.6 + sin(uv.y*1.3-u_time*0.4)*0.4; float fwy=sin(uv.x*2.3-u_time*0.6)*0.6 + sin(uv.x*1.1+u_time*0.5)*0.4;
-      uv-= fv*u_curStr*1.4 + vec2(fwx,fwy)*fst*u_mouseRad*u_curChurn*0.6; }
+      vec2 fd=fv*u_curStr*1.0; fd/=(1.0+dot(fd,fd)*0.8); uv-= fd + vec2(fwx,fwy)*fst*u_mouseRad*u_curChurn*0.6; }
     if(u_cm[1]>0.5){ float cell=0.12; vec2 q=(floor(uv/cell)+0.5)*cell; uv=mix(uv,q,smoothstep(0.0,1.0,fst)); } }
   uv-=u_center; uv*=u_scale;
   float cr=cos(u_rot), sr=sin(u_rot); uv=vec2(cr*uv.x - sr*uv.y, sr*uv.x + cr*uv.y);
