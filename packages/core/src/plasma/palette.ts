@@ -7,6 +7,11 @@ export type HarmonyMode = 'analogous' | 'complementary' | 'triadic' | 'mono' | '
 
 const to2 = (v: number) => ('0' + Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16)).slice(-2);
 
+/** RGB tuple (each channel 0..1, clamped) → #rrggbb. */
+export function rgb2hex([r, g, b]: [number, number, number]): string {
+  return '#' + to2(r) + to2(g) + to2(b);
+}
+
 /** OKLCH (L 0..1, C chroma, H degrees) → #rrggbb (gamut-clamped). */
 export function oklchToHex(L: number, C: number, H: number): string {
   const h = (H * Math.PI) / 180;

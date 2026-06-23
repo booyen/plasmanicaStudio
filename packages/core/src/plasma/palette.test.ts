@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generatePaletteOklch, oklchToHex } from './palette.js';
+import { generatePaletteOklch, oklchToHex, rgb2hex } from './palette.js';
 
 const HEX = /^#[0-9a-f]{6}$/;
 
@@ -20,5 +20,16 @@ describe('OKLCH palette generator', () => {
   it('triadic spans distinct hues (not all the same color)', () => {
     const p = generatePaletteOklch('triadic');
     expect(new Set(p).size).toBe(3);
+  });
+});
+
+describe('rgb2hex', () => {
+  it('formats 0..1 channels to #rrggbb', () => {
+    expect(rgb2hex([0, 0, 0])).toBe('#000000');
+    expect(rgb2hex([1, 1, 1])).toBe('#ffffff');
+    expect(rgb2hex([1, 0, 0])).toBe('#ff0000');
+  });
+  it('clamps out-of-range channels', () => {
+    expect(rgb2hex([-0.5, 2, 0.5])).toBe('#00ff80');
   });
 });
