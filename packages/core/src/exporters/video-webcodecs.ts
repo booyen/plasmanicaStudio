@@ -36,24 +36,25 @@ export async function exportVideoWebCodecs(
   const base = r.time;
 
   r.beginExport(W, H);
-  const ex = document.createElement('canvas');
-  ex.width = W;
-  ex.height = H;
-  const ctx = ex.getContext('2d')!;
-
-  const muxer = new Muxer({
-    target: new ArrayBufferTarget(),
-    video: { codec: 'avc', width: W, height: H },
-    fastStart: 'in-memory',
-  });
-  let encErr: unknown = null;
-  const encoder = new VideoEncoder({
-    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-    error: (e) => { encErr = e; },
-  });
-  encoder.configure({ codec, width: W, height: H, bitrate, framerate: fps });
-
+  let encoder: VideoEncoder | undefined;
   try {
+    const ex = document.createElement('canvas');
+    ex.width = W;
+    ex.height = H;
+    const ctx = ex.getContext('2d')!;
+
+    const muxer = new Muxer({
+      target: new ArrayBufferTarget(),
+      video: { codec: 'avc', width: W, height: H },
+      fastStart: 'in-memory',
+    });
+    let encErr: unknown = null;
+    encoder = new VideoEncoder({
+      output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+      error: (e) => { encErr = e; },
+    });
+    encoder.configure({ codec, width: W, height: H, bitrate, framerate: fps });
+
     const times = videoFrameTimes(L, fps);
     const usPerFrame = 1_000_000 / fps;
     const kf = Math.max(1, Math.round(fps * 2)); // keyframe ~every 2s
@@ -76,7 +77,7 @@ export async function exportVideoWebCodecs(
     const { buffer } = muxer.target as ArrayBufferTarget;
     return { blob: new Blob([buffer], { type: 'video/mp4' }), ext: 'mp4' };
   } finally {
-    if (encoder.state !== 'closed') encoder.close();
+    if (encoder && encoder.state !== 'closed') encoder.close();
     r.endExport();
   }
 }
