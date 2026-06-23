@@ -58,6 +58,26 @@ export function videoFrameTimes(durationS: number, fps: number): number[] {
 
 const delay = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
 
+/**
+ * Draw one frame onto `ctx`: the crisp single playhead at base+tau, plus — in
+ * loop mode within the final crossfade window — the wrap frame at base+tau-L
+ * composited at seamlessWeight() alpha. Shared by both capture backends.
+ */
+export function renderFrameToCanvas(
+  r: PlasmaRenderer, ctx: CanvasRenderingContext2D,
+  base: number, tau: number, L: number, mode: VideoMode, W: number, H: number,
+): void {
+  r.renderAt(base + tau);
+  ctx.globalAlpha = 1;
+  ctx.drawImage(r.element, 0, 0, W, H);
+  const w = mode === 'loop' ? seamlessWeight(tau, L) : 0;
+  if (w > 0) {
+    r.renderAt(base + tau - L);
+    ctx.globalAlpha = w;
+    ctx.drawImage(r.element, 0, 0, W, H);
+  }
+}
+
 function pickMime(): string {
   const o = ['video/mp4;codecs=h264', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
   for (const m of o) if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m)) return m;
@@ -107,21 +127,9 @@ export async function exportVideo(
   const start = performance.now();
   for (let i = 0; i < times.length; i++) {
     const tau = times[i]!;
-    // crisp body: single playhead, no ghosting
-    r.renderAt(base + tau);
-    ctx.globalAlpha = 1;
-    ctx.drawImage(r.element, 0, 0, W, H);
-    // seamless: short boundary crossfade only in the final B seconds
-    const w = mode === 'loop' ? seamlessWeight(tau, L) : 0;
-    if (w > 0) {
-      r.renderAt(base + tau - L);
-      ctx.globalAlpha = w;
-      ctx.drawImage(r.element, 0, 0, W, H);
-    }
+    renderFrameToCanvas(r, ctx, base, tau, L, mode, W, H);
     if (manual) track.requestFrame();
     opts.onProgress?.((i + 1) / times.length);
-    // Pace capture to realtime so frame timestamps are evenly spaced; if a frame
-    // overran its slot, just yield (slower-than-realtime, but still even content).
     const wait = start + (i + 1) * frameMs - performance.now();
     await delay(wait > 0 ? wait : 0);
   }
