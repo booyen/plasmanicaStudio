@@ -13,6 +13,7 @@ import { LeftPanel } from './panels/LeftPanel.js';
 import { RightPanel } from './panels/RightPanel.js';
 import { BottomDock } from './panels/BottomDock.js';
 import { ExportDock } from './panels/ExportDock.js';
+import { TimelineStrip } from './panels/timeline/TimelineStrip.js';
 import { surprise } from './lib/surprise.js';
 import { rendererRef } from './lib/rendererRef.js';
 import { bindTimelinePlayback } from './lib/timelinePlayback.js';
@@ -71,6 +72,7 @@ export function App() {
       <RightPanel />
       <BottomDock />
       <ExportDock />
+      <TimelineStrip />
     </div>
   );
 }
