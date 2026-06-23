@@ -45,6 +45,9 @@ export async function exportVideoWebCodecs(
 
     const muxer = new Muxer({
       target: new ArrayBufferTarget(),
+      // 'avc' is correct only while every entry in H264_CANDIDATES is an AVC
+      // profile (avc1.*). If a non-AVC candidate (e.g. HEVC hvc1.*) is ever
+      // added to pickH264Codec, derive this from the chosen `codec` instead.
       video: { codec: 'avc', width: W, height: H },
       fastStart: 'in-memory',
     });
