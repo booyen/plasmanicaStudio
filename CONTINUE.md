@@ -1,6 +1,6 @@
 # Continue here
 
-> Handoff note for picking up on another machine. Last updated 2026-06-20.
+> Handoff note for picking up on another machine. Last updated 2026-06-22.
 
 ## How to resume
 
@@ -20,21 +20,30 @@ fixes.
 
 Last commit: `645c526 docs: post-effects pipeline design spec`.
 
-## Next task — implement the post-effects pipeline
+## Done — post-effects pipeline (2026-06-22)
 
-The design spec is written but **not yet implemented**:
-[docs/superpowers/specs/2026-06-19-post-effects-design.md](docs/superpowers/specs/2026-06-19-post-effects-design.md)
+Bloom ("Shining") / Blur / Glass / Pixelate now ship as a stackable post-process
+chain between the plasma FBO and the gradient composite. Implemented test-first:
 
-Four effects (bloom / blur / glass / pixelate) as a post-process chain feeding the
-always-on gradient composite. Spec covers:
+- **Core:** `effects` config block (zod, clamped, all-off default) in
+  [config.ts](packages/core/src/plasma/config.ts) + [config-defaults.ts](packages/core/src/plasma/config-defaults.ts);
+  new [effects.ts](packages/core/src/plasma/effects.ts) (`EffectChain` class + GLSL
+  passes + `planPasses`/`bloomBrightWeight` helpers); "Effects" lock group in
+  [randomize.ts](packages/core/src/plasma/randomize.ts) (surprise-me rolls them lightly);
+  chain wired into [renderer.ts](packages/core/src/plasma/renderer.ts).
+- **UI:** [EffectsControls.tsx](apps/studio/src/panels/controls/EffectsControls.tsx) +
+  `PARAMS` in [spec.ts](apps/studio/src/panels/controls/spec.ts) + Effects section in
+  [RightPanel.tsx](apps/studio/src/panels/RightPanel.tsx).
+- **Reach:** effects run in studio, PNG/video export, AND the `<plasma-bg>` embed
+  (they share `PlasmaRenderer`). Embed bundle 13.58 KB gzip, under the 15 KB budget.
+  This deviates from the spec's "embed out of scope" — see the spec's Implementation note.
+- **Tests:** unit (config round-trip/clamp, effects pass-order/bloom math, lock group)
+  + 5 new Playwright goldens (one per effect + a stacked combo). Full suite + build green.
 
-- **Core:** `effects` config schema + defaults, GLSL passes, added to `LOCK_GROUPS`
-  ("Effects" group) in `packages/core/src/plasma/randomize.ts`.
-- **UI:** new collapsible "Effects" section + `apps/studio/src/panels/controls/EffectsControls.tsx`,
-  new `PARAMS` entries in `controls/spec.ts`.
-- **Exports:** PNG/video get effects for free; embed deliberately excludes them (bundle budget).
-- **Tests:** `config.test.ts` round-trip, `effects.test.ts` pass-order/math, Playwright goldens.
+> Heads-up: the embed budget now has only ~1.4 KB gzip headroom. Watch it if you add
+> more effect shaders.
 
-Suggested starting point: core config schema + GLSL passes first, then wire the UI, then goldens.
+## Next ideas (backlog)
 
-See [PLASMA_STUDIO_ROADMAP.md](PLASMA_STUDIO_ROADMAP.md) for the broader milestone plan.
+Effects extensions noted as out-of-scope in the spec: chromatic aberration, vignette,
+per-effect presets, WebGL2/float FBOs. See [PLASMA_STUDIO_ROADMAP.md](PLASMA_STUDIO_ROADMAP.md).

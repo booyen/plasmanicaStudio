@@ -30,6 +30,46 @@ describe('overlay + seed schema', () => {
   });
 });
 
+describe('effects schema', () => {
+  it('defaults: every effect off, params at spec defaults', () => {
+    expect(defaultConfig.effects.pixelate).toEqual({ on: false, size: 8 });
+    expect(defaultConfig.effects.blur).toEqual({ on: false, strength: 0.5 });
+    expect(defaultConfig.effects.glass).toEqual({ on: false, strength: 0.5, tint: 0.3 });
+    expect(defaultConfig.effects.bloom).toEqual({ on: false, threshold: 0.7, intensity: 0.6, radius: 0.5 });
+  });
+  it('round-trips a configured effects block', () => {
+    const cfg = parseConfig({
+      ...defaultConfig,
+      effects: {
+        pixelate: { on: true, size: 24 },
+        blur: { on: true, strength: 0.8 },
+        glass: { on: true, strength: 0.4, tint: 0.6 },
+        bloom: { on: true, threshold: 0.5, intensity: 0.9, radius: 0.7 },
+      },
+    });
+    expect(parseConfig(cfg)).toEqual(cfg);
+  });
+  it('clamps + falls back bad effects values', () => {
+    const cfg = parseConfig({
+      effects: {
+        pixelate: { on: 'yes', size: 999 },
+        blur: { strength: -3 },
+        glass: { tint: 5 },
+        bloom: { threshold: 9, intensity: -1 },
+      },
+    });
+    expect(cfg.effects.pixelate.on).toBe(false); // non-boolean → default off
+    expect(cfg.effects.pixelate.size).toBe(64); // clamp 2–64
+    expect(cfg.effects.blur.strength).toBe(0); // clamp 0–1
+    expect(cfg.effects.glass.tint).toBe(1); // clamp 0–1
+    expect(cfg.effects.bloom.threshold).toBe(1); // clamp 0–1
+    expect(cfg.effects.bloom.intensity).toBe(0); // clamp 0–1
+  });
+  it('missing effects block fills all-off defaults', () => {
+    expect(parseConfig({}).effects).toEqual(defaultConfig.effects);
+  });
+});
+
 describe('PlasmaConfig', () => {
   it('hand-written defaultConfig equals parseConfig({}) (no drift)', () => {
     expect(defaultConfig).toEqual(parseConfig({}));

@@ -1,8 +1,23 @@
 # Post-Effects Pipeline — Design Spec
 
 **Date:** 2026-06-19
-**Status:** Approved (brainstorm), pending implementation plan
+**Status:** Implemented 2026-06-22. One deviation from this spec — see "Implementation note" below.
 **Scope:** Add stackable image-filter effects (Bloom/"Shining", Blur, Glass, Pixelate) to the Plasma/Effects Studio, separate from the existing gradient Overlay. Works in the studio + PNG/video export. The `<plasma-bg>` embed stays lean (gradient overlay only).
+
+## Implementation note (2026-06-22)
+
+The spec assumed the embed could stay effect-free because "the effects module is
+not imported in the embed path." That premise was wrong: the embed instantiates
+the **same `PlasmaRenderer`** ([packages/embed/src/plasma-bg.ts](../../../packages/embed/src/plasma-bg.ts)),
+which owns the effect chain — so the effect code (and behaviour) is reachable from
+the embed no matter what. Rather than add a DI seam to strip it back out, effects
+now run **everywhere** (studio, export, **and** `<plasma-bg>`). The embed gains
+effects for free; the bundle grew from 10.67 KB → **13.58 KB gzip**, still under
+the < 15 KB budget. The "Embed support … out of scope" item below is therefore
+superseded. Effect GLSL lives in [packages/core/src/plasma/effects.ts](../../../packages/core/src/plasma/effects.ts)
+as the `EffectChain` class (not a free `applyEffects(gl, …, ctx)` function as the
+spec sketched — the class owns the ping-pong pool + programs and keeps the
+renderer lean).
 
 ## Goal
 

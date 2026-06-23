@@ -23,6 +23,7 @@ export const LOCK_GROUPS: LockGroup[] = [
   },
   { key: 'cursor', label: 'Cursor', paths: ['cursor'] },
   { key: 'overlay', label: 'Overlay', paths: ['overlay'] },
+  { key: 'effects', label: 'Effects', paths: ['effects'] },
 ];
 
 const GROUP_KEYS = new Set(LOCK_GROUPS.map((g) => g.key));
@@ -102,6 +103,17 @@ const HARMONIES = ['analogous', 'complementary', 'triadic', 'mono', 'random'] as
  * tasteful parameter ranges. Far more varied than cycling the 8 curated vibes —
  * the vibes stay available as the LeftPanel chips.
  */
+/** Mostly-off, occasionally-on post effects with gentle params — surprise-me
+ *  surfaces them now and then without overwhelming the base plasma. */
+function randomEffects(): CoreConfig['effects'] {
+  return {
+    pixelate: { on: Math.random() < 0.1, size: Math.round(RR(6, 28)) },
+    blur: { on: Math.random() < 0.12, strength: RR(0.15, 0.5) },
+    glass: { on: Math.random() < 0.12, strength: RR(0.2, 0.5), tint: RR(0.15, 0.5) },
+    bloom: { on: Math.random() < 0.3, threshold: RR(0.45, 0.75), intensity: RR(0.3, 0.7), radius: RR(0.3, 0.7) },
+  };
+}
+
 function randomLook(): CoreConfig {
   const palette = generatePalette(choose(HARMONIES));
   const bg = hsl2hex(Math.floor(RR(0, 360)), RR(0.3, 0.7), RR(0.02, 0.07)); // dark tinted
@@ -123,6 +135,7 @@ function randomLook(): CoreConfig {
     gravity: RR(-0.4, 0.4),
     grain: RR(0, 0.12),
     rotateDeg: Math.random() < 0.5 ? 0 : RR(-180, 180),
+    effects: randomEffects(),
   });
 }
 

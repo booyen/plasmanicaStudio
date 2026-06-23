@@ -5,6 +5,7 @@ import { VERT, FLOW_FRAG, FIELD_NAMES, MATERIAL_NAMES, buildFrag } from './shade
 import { SHAPE_NAMES } from './data.js';
 import { makeProgram, hex2rgb } from './gl.js';
 import { COMPOSITE_FRAG, OVERLAY_TYPE_INDEX, OVERLAY_BLEND_INDEX } from './overlay.js';
+import { EffectChain } from './effects.js';
 import type { CoreConfig } from './config.js';
 import { type CursorMode, CURSOR_MODES, defaultConfig } from './config-defaults.js';
 
@@ -36,6 +37,7 @@ export class PlasmaRenderer {
   private compPos = -1;
   private plasmaTex: WebGLTexture | null = null;
   private plasmaFBO: WebGLFramebuffer | null = null;
+  private effectChain: EffectChain | null = null; // post-process passes (plasma → effects → composite)
   private ptW = 0;
   private ptH = 0;
   private ovType = 0;
@@ -163,6 +165,7 @@ export class PlasmaRenderer {
     this.program = null;
     this.flowProg = null;
     this.compProg = null;
+    this.effectChain = null; // recreated by initComposite (old GL resources died with the context)
     this.initGL();
     this.maybeRun();
   };
@@ -230,6 +233,7 @@ export class PlasmaRenderer {
     this.plasmaTex = null; // force ensurePlasmaTarget to (re)allocate
     this.ptW = 0;
     this.ptH = 0;
+    this.effectChain = new EffectChain(gl, this.buf);
   }
 
   private ensurePlasmaTarget(w: number, h: number) {
@@ -368,7 +372,12 @@ export class PlasmaRenderer {
     this.setUniforms(timeVal);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-    // pass 2: composite plasmaTex (+ overlay) → screen
+    // pass 1.5: post-process effect chain (no-op + zero cost when all effects off)
+    const fxTex = this.effectChain
+      ? this.effectChain.apply(this.plasmaTex!, w, h, this.cfg.effects)
+      : this.plasmaTex;
+
+    // pass 2: composite the (effected) plasma + overlay → screen
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, w, h);
     gl.useProgram(this.compProg);
@@ -376,7 +385,7 @@ export class PlasmaRenderer {
     gl.enableVertexAttribArray(this.compPos);
     gl.vertexAttribPointer(this.compPos, 2, gl.FLOAT, false, 0, 0);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.plasmaTex);
+    gl.bindTexture(gl.TEXTURE_2D, fxTex);
     gl.uniform1i(this.cloc.plasma!, 0);
     gl.uniform1i(this.cloc.type!, this.ovType);
     gl.uniform1i(this.cloc.blend!, this.ovBlend);
@@ -645,6 +654,8 @@ export class PlasmaRenderer {
     this.canvas.removeEventListener('webglcontextrestored', this.onContextRestored as EventListener);
     if (this.program) gl.deleteProgram(this.program);
     if (this.compProg) gl.deleteProgram(this.compProg);
+    this.effectChain?.dispose();
+    this.effectChain = null;
     if (this.plasmaTex) gl.deleteTexture(this.plasmaTex);
     if (this.plasmaFBO) gl.deleteFramebuffer(this.plasmaFBO);
     if (this.flowProg) gl.deleteProgram(this.flowProg);

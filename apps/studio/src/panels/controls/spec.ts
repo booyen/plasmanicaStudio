@@ -52,6 +52,14 @@ export const PARAMS = {
   ovRadius: { key: 'ovRadius', label: 'radius', path: 'overlay.radius', min: 0.05, max: 2, step: 0.01, decimals: 2 },
   ovCenterX: { key: 'ovCenterX', label: 'center x', path: 'overlay.center.0', min: -1, max: 2, step: 0.01, decimals: 2 },
   ovCenterY: { key: 'ovCenterY', label: 'center y', path: 'overlay.center.1', min: -1, max: 2, step: 0.01, decimals: 2 },
+
+  fxPixSize: { key: 'fxPixSize', label: 'cell size', path: 'effects.pixelate.size', min: 2, max: 64, step: 1, unit: 'px', decimals: 0 },
+  fxBlurStr: { key: 'fxBlurStr', label: 'strength', path: 'effects.blur.strength', min: 0, max: 1, step: 0.01, decimals: 2 },
+  fxGlassStr: { key: 'fxGlassStr', label: 'strength', path: 'effects.glass.strength', min: 0, max: 1, step: 0.01, decimals: 2 },
+  fxGlassTint: { key: 'fxGlassTint', label: 'tint', path: 'effects.glass.tint', min: 0, max: 1, step: 0.01, decimals: 2 },
+  fxBloomThresh: { key: 'fxBloomThresh', label: 'threshold', path: 'effects.bloom.threshold', min: 0, max: 1, step: 0.01, decimals: 2 },
+  fxBloomInt: { key: 'fxBloomInt', label: 'intensity', path: 'effects.bloom.intensity', min: 0, max: 1, step: 0.01, decimals: 2 },
+  fxBloomRadius: { key: 'fxBloomRadius', label: 'radius', path: 'effects.bloom.radius', min: 0, max: 1, step: 0.01, decimals: 2 },
 } satisfies Record<string, ParamSpec>;
 
 export type ParamKey = keyof typeof PARAMS;

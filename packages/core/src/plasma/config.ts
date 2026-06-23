@@ -30,6 +30,10 @@ const hex = (def: string) =>
 const inList = (list: readonly string[], def: string) =>
   z.preprocess((v) => (typeof v === 'string' && list.includes(v) ? v : def), z.string());
 
+// Boolean field with an explicit default; non-boolean → default.
+const bool = (def: boolean) =>
+  z.preprocess((v) => (typeof v === 'boolean' ? v : def), z.boolean());
+
 const cursorModes = z.preprocess(
   (v) => (Array.isArray(v) ? v.filter((m) => (CURSOR_MODES as readonly string[]).includes(m)) : ['fluid']),
   z.array(z.enum(CURSOR_MODES)),
@@ -49,6 +53,13 @@ const OVERLAY_DEFAULT = {
   angleDeg: 0,
   center: [0.5, 0.5] as [number, number],
   radius: 0.75,
+};
+
+const EFFECTS_DEFAULT = {
+  pixelate: { on: false, size: 8 },
+  blur: { on: false, strength: 0.5 },
+  glass: { on: false, strength: 0.5, tint: 0.3 },
+  bloom: { on: false, threshold: 0.7, intensity: 0.6, radius: 0.5 },
 };
 
 export const PlasmaConfig = z.object({
@@ -118,6 +129,32 @@ export const PlasmaConfig = z.object({
     })
     .catch({ ...OVERLAY_DEFAULT })
     .default({ ...OVERLAY_DEFAULT }),
+
+  // Stackable post-process image filters (Bloom/Blur/Glass/Pixelate). All-off by
+  // default → zero visual change. Each effect is independent; the renderer runs the
+  // enabled passes in fixed order (pixelate → blur/glass → bloom) before the
+  // gradient composite. Round-trips through share links like any other block.
+  effects: z
+    .object({
+      pixelate: z
+        .object({ on: bool(false), size: num(8, 2, 64) })
+        .catch({ ...EFFECTS_DEFAULT.pixelate })
+        .default({ ...EFFECTS_DEFAULT.pixelate }),
+      blur: z
+        .object({ on: bool(false), strength: num(0.5, 0, 1) })
+        .catch({ ...EFFECTS_DEFAULT.blur })
+        .default({ ...EFFECTS_DEFAULT.blur }),
+      glass: z
+        .object({ on: bool(false), strength: num(0.5, 0, 1), tint: num(0.3, 0, 1) })
+        .catch({ ...EFFECTS_DEFAULT.glass })
+        .default({ ...EFFECTS_DEFAULT.glass }),
+      bloom: z
+        .object({ on: bool(false), threshold: num(0.7, 0, 1), intensity: num(0.6, 0, 1), radius: num(0.5, 0, 1) })
+        .catch({ ...EFFECTS_DEFAULT.bloom })
+        .default({ ...EFFECTS_DEFAULT.bloom }),
+    })
+    .catch({ ...EFFECTS_DEFAULT })
+    .default({ ...EFFECTS_DEFAULT }),
 });
 
 export type CoreConfig = z.infer<typeof PlasmaConfig>;

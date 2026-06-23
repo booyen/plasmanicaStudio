@@ -27,6 +27,15 @@ describe('seeded randomize', () => {
     const out = randomizeConfig(cur, { overlay: true }, 99);
     expect(out.overlay).toEqual(cur.overlay);
   });
+  it('effects is a lock group; locking it preserves effects', () => {
+    expect(LOCK_GROUPS.map((g) => g.key)).toContain('effects');
+    const cur = parseConfig({
+      ...defaultConfig,
+      effects: { ...defaultConfig.effects, bloom: { on: true, threshold: 0.4, intensity: 0.8, radius: 0.6 } },
+    });
+    const out = randomizeConfig(cur, { effects: true }, 99);
+    expect(out.effects).toEqual(cur.effects);
+  });
   it('explores the full space — many distinct fields + procedural palettes across seeds', () => {
     const motions = new Set<string>();
     const firstColors = new Set<string>();

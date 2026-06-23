@@ -22,6 +22,32 @@ const SAMPLES: Array<{ name: string; cfg: Record<string, unknown> }> = [
         colorB: '#000010', alphaB: 1, angleDeg: 0, center: [0.5, 0.5], radius: 0.8 },
     },
   },
+  // Post-effects: one per effect over the same base look, plus a stacked combo.
+  {
+    name: 'fx-bloom',
+    cfg: { motion: 'Classic', material: 'Smooth', shape: 'Free', effects: { bloom: { on: true, threshold: 0.45, intensity: 0.9, radius: 0.7 } } },
+  },
+  {
+    name: 'fx-blur',
+    cfg: { motion: 'Classic', material: 'Smooth', shape: 'Free', effects: { blur: { on: true, strength: 0.7 } } },
+  },
+  {
+    name: 'fx-glass',
+    cfg: { motion: 'Classic', material: 'Smooth', shape: 'Free', effects: { glass: { on: true, strength: 0.5, tint: 0.5 } } },
+  },
+  {
+    name: 'fx-pixelate',
+    cfg: { motion: 'Classic', material: 'Smooth', shape: 'Free', effects: { pixelate: { on: true, size: 16 } } },
+  },
+  {
+    name: 'fx-stacked-blur-bloom-overlay',
+    cfg: {
+      motion: 'Classic', material: 'Smooth', shape: 'Free',
+      effects: { blur: { on: true, strength: 0.4 }, bloom: { on: true, threshold: 0.5, intensity: 0.7, radius: 0.6 } },
+      overlay: { type: 'radial', blend: 'multiply', opacity: 0.9, colorA: '#ffffff', alphaA: 0,
+        colorB: '#000010', alphaB: 1, angleDeg: 0, center: [0.5, 0.5], radius: 0.8 },
+    },
+  },
 ];
 
 const SEEK_T = 12.5;

@@ -41,4 +41,10 @@ export const defaultConfig: CoreConfig = {
     center: [0.5, 0.5],
     radius: 0.75,
   },
+  effects: {
+    pixelate: { on: false, size: 8 },
+    blur: { on: false, strength: 0.5 },
+    glass: { on: false, strength: 0.5, tint: 0.3 },
+    bloom: { on: false, threshold: 0.7, intensity: 0.6, radius: 0.5 },
+  },
 };

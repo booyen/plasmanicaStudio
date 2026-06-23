@@ -9,6 +9,7 @@ import { ColorControls } from './controls/ColorControls.js';
 import { CursorControls } from './controls/CursorControls.js';
 import { CenterPresets } from './controls/CenterPresets.js';
 import { OverlayControls } from './controls/OverlayControls.js';
+import { EffectsControls } from './controls/EffectsControls.js';
 import { PARAMS } from './controls/spec.js';
 import { useConfigStore } from '../stores/config.js';
 import { useStageStore } from '../stores/stage.js';
@@ -86,6 +87,9 @@ export function RightPanel() {
         </Section>
         <Section title="Overlay" lockKey="overlay">
           <OverlayControls />
+        </Section>
+        <Section title="Effects" lockKey="effects">
+          <EffectsControls />
         </Section>
       </div>
     </aside>
