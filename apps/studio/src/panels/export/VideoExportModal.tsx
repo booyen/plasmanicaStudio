@@ -1,6 +1,6 @@
 // Video export modal: settings on the left (30%), live preview on the right (70%).
 import { useState } from 'react';
-import { exportVideo, type VideoMode, type VideoQuality } from '@effects/core';
+import { exportVideo, supportsWebCodecs, type VideoMode, type VideoQuality } from '@effects/core';
 import { Modal } from '../../components/ui/modal.js';
 import { Button } from '../../components/ui/button.js';
 import { Select } from '../../components/ui/select.js';
@@ -25,7 +25,7 @@ export function VideoExportModal({ open, onClose }: { open: boolean; onClose: ()
         durationS: dur,
         mode,
         quality: qual,
-        onProgress: (p) => setStatus(`recording ${Math.round(p * 100)}%`),
+        onProgress: (p) => setStatus(`rendering ${Math.round(p * 100)}%`),
       });
       const c = useConfigStore.getState().config;
       download(blob, exportName(c.material, c.motion, `${dur}s_${mode === 'loop' ? 'loop' : 'cont'}_${qual}`, ext));
@@ -70,8 +70,11 @@ export function VideoExportModal({ open, onClose }: { open: boolean; onClose: ()
               ? 'Crisp, no ghosting (a visible jump if looped).'
               : 'Loops cleanly via a brief blend at the wrap.'}
           </p>
+          <p className="text-[10px] leading-relaxed text-muted-foreground">
+            Format: {supportsWebCodecs() ? 'MP4 · H.264' : 'WebM'}
+          </p>
           <Button variant="primary" size="full" disabled={busy} onClick={save}>
-            {busy ? status || 'recording…' : 'save video'}
+            {busy ? status || 'rendering…' : 'save video'}
           </Button>
           {!busy && status && <span className="text-[11px] text-muted-foreground">{status}</span>}
         </div>
