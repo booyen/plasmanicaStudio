@@ -31,7 +31,7 @@ export function TimelineStrip() {
 
   const dragPlayhead = (e: React.PointerEvent) => {
     e.stopPropagation();
-    (e.target as Element).setPointerCapture(e.pointerId);
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
     const move = (ev: PointerEvent) => seek(xToT(ev.clientX));
     const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
     window.addEventListener('pointermove', move);
@@ -41,7 +41,7 @@ export function TimelineStrip() {
   const dragPip = (id: string) => (e: React.PointerEvent) => {
     e.stopPropagation();
     select(id);
-    (e.target as Element).setPointerCapture(e.pointerId);
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
     const move = (ev: PointerEvent) => moveKeyframe(id, xToT(ev.clientX));
     const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
     window.addEventListener('pointermove', move);

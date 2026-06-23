@@ -36,7 +36,7 @@ export function VideoExportModal({ open, onClose }: { open: boolean; onClose: ()
         onProgress: (p) => setStatus(`rendering ${Math.round(p * 100)}%`),
       });
       const c = useConfigStore.getState().config;
-      download(blob, exportName(c.material, c.motion, `${dur}s_${mode === 'loop' ? 'loop' : 'cont'}_${qual}`, ext));
+      download(blob, exportName(c.material, c.motion, `${tl ? tlDuration : dur}s_${mode === 'loop' ? 'loop' : 'cont'}_${qual}`, ext));
       setStatus(`✓ ${dur}s ${mode === 'loop' ? 'seamless loop' : 'continuous'} ready`);
     } catch (e) {
       setStatus(e instanceof Error ? e.message : 'export failed');

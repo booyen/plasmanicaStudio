@@ -131,4 +131,8 @@ describe('sampleTimeline', () => {
     // ease-in at u=0.5 -> 0.25 -> speed 1
     expect(sampleTimeline(eased, 5).speed).toBeCloseTo(1, 6);
   });
+
+  it('throws on an empty timeline', () => {
+    expect(() => sampleTimeline({ duration: 10, keyframes: [] }, 5)).toThrow(/no keyframes/);
+  });
 });
