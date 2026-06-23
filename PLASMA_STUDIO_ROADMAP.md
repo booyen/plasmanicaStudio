@@ -253,7 +253,7 @@ makes this trivial).
 | 2 | Presets + share links + hardening | URL restores exact look; never-black; reduced-motion |
 | 3 | Embed package + runtime API + preset morphing | `<plasma-bg>` <15KB gz; GSAP scroll demo scrubs `animateTo` |
 | 4 | Post pipeline (bloom, glass) + WebCodecs MP4 export | Toggleable passes; mp4 downloads |
-| 5 | Keyframe timeline + second engine (mesh gradient) | Timeline exports with embed; engine #2 ships with zero studio edits |
+| 5 | Keyframe timeline + second engine (mesh gradient) | Timeline exports with embed; engine #2 ships with zero studio edits | _(in-studio keyframe timeline + video export shipped 2026-06-23; embed runtime API + engine #2 remain)_ |
 
 ---
 

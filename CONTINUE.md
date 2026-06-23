@@ -72,9 +72,43 @@ path where WebCodecs is unavailable. This completes **Milestone 4** (post pipeli
 > and its API is intact, but consider migrating. It also pulls `@types/dom-webcodecs`
 > as a transitive runtime dep.
 
+## Done — keyframe timeline (M5 v1) (2026-06-23)
+
+In-studio keyframe timeline that morphs whole-look snapshots over time, with live
+preview and video export of the morph. First half of **Milestone 5**. Implemented
+test-first per [the plan](docs/superpowers/plans/2026-06-23-keyframe-timeline.md):
+
+- **Core (pure):** [timeline.ts](packages/core/src/plasma/timeline.ts) —
+  `lerpConfig` (explicit field-by-field: numbers/tuples lerp, palette + hex colors
+  mix in OKLab via the existing `oklabMix`, discrete fields hard-switch at the t=0.5
+  midpoint), `applyEasing` (linear / ease-in / ease-out / ease-in-out), and
+  `sampleTimeline(timeline, time)`. `rgb2hex` added to
+  [palette.ts](packages/core/src/plasma/palette.ts). Zero-dependency.
+- **Two clocks:** the plasma's motion time keeps running while timeline time morphs
+  the *look* — both advance during playback.
+- **Studio:** [useTimelineStore](apps/studio/src/stores/timeline.ts) (2–6 keyframes,
+  capture/move/delete/easing/duration); a rAF playback loop
+  ([timelinePlayback.ts](apps/studio/src/lib/timelinePlayback.ts)) that drives the
+  renderer DIRECTLY (no config-store writes, no per-frame React render; pause restores
+  the authoring look); a bottom
+  [TimelineStrip](apps/studio/src/panels/timeline/TimelineStrip.tsx) (track + pips +
+  playhead + transport).
+- **Export:** `VideoOpts.timeline?` — when set, the shared `renderFrameToCanvas`
+  re-samples the config per frame (both MP4 and WebM backends). The modal opts in when
+  ≥2 keyframes exist and warns that seamless loops need matching first/last keyframes.
+- **Tests:** unit for lerp/easing/sample + the store; a deterministic 2-keyframe
+  midpoint Playwright golden. Full suite green: 103 unit (88 core + 15 studio), 15 visual;
+  embed unchanged at 13.58 KB (timeline code stays out of the embed).
+
+> Follow-ups (own specs): embed runtime API (`plasmaBG.animateTo/timeline/play/seek`),
+> audio reactivity, crossfading discrete (motion/material) changes instead of hard-cut,
+> a second engine. Small polish: the export filename uses the manual duration, not the
+> timeline duration, for timeline exports.
+
 ## Next ideas (backlog)
 
 Effects extensions noted as out-of-scope in the post-effects spec: chromatic
 aberration, vignette, per-effect presets, WebGL2/float FBOs. Plus: migrate the MP4
 muxer off deprecated `mp4-muxer` to `mediabunny`; optional 4K export tier (now cheap
-with faster-than-realtime WebCodecs). See [PLASMA_STUDIO_ROADMAP.md](PLASMA_STUDIO_ROADMAP.md).
+with faster-than-realtime WebCodecs); M5 second half (embed runtime API / a second
+engine). See [PLASMA_STUDIO_ROADMAP.md](PLASMA_STUDIO_ROADMAP.md).
