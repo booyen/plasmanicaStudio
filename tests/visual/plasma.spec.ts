@@ -52,6 +52,17 @@ const SAMPLES: Array<{ name: string; cfg: Record<string, unknown> }> = [
 
 const SEEK_T = 12.5;
 
+test.describe('video export', () => {
+  test('exports a real MP4 (ftyp box) via WebCodecs', async ({ page }) => {
+    await page.goto('/golden.html');
+    await page.waitForFunction(() => typeof window.exportMp4Probe === 'function');
+    const res = await page.evaluate(() => window.exportMp4Probe());
+    expect(res.type).toBe('video/mp4');
+    expect(res.size).toBeGreaterThan(0);
+    expect(res.ftyp).toBe('ftyp'); // MP4 signature at byte offset 4
+  });
+});
+
 test.describe('plasma visual goldens', () => {
   for (const s of SAMPLES) {
     test(s.name, async ({ page }) => {
