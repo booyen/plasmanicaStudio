@@ -20,7 +20,7 @@ export type VideoOpts = {
   onProgress?: (p: number) => void;
 };
 
-const QUALITY: Record<VideoQuality, { w: number; h: number; bitrate: number }> = {
+export const QUALITY: Record<VideoQuality, { w: number; h: number; bitrate: number }> = {
   lite: { w: 1280, h: 720, bitrate: 2_500_000 },
   hd: { w: 1920, h: 1080, bitrate: 6_000_000 },
 };
