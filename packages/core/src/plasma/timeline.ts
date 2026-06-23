@@ -101,3 +101,31 @@ export function lerpConfig(a: CoreConfig, b: CoreConfig, t: number): CoreConfig 
     },
   });
 }
+
+export interface Keyframe {
+  id: string;
+  t: number;
+  config: CoreConfig;
+  easing: Easing;
+}
+
+export interface Timeline {
+  duration: number;
+  keyframes: Keyframe[];
+}
+
+/** The morphed look at `time` seconds. Keyframes assumed sorted by t. */
+export function sampleTimeline(tl: Timeline, time: number): CoreConfig {
+  const ks = tl.keyframes;
+  const clamped = Math.min(tl.duration, Math.max(0, time));
+  if (clamped <= ks[0]!.t) return ks[0]!.config;
+  const last = ks[ks.length - 1]!;
+  if (clamped >= last.t) return last.config;
+  let i = 0;
+  while (i < ks.length - 1 && !(ks[i]!.t <= clamped && clamped < ks[i + 1]!.t)) i++;
+  const kA = ks[i]!;
+  const kB = ks[i + 1]!;
+  if (kB.t === kA.t) return kB.config;
+  const u = (clamped - kA.t) / (kB.t - kA.t);
+  return lerpConfig(kA.config, kB.config, applyEasing(kA.easing, u));
+}

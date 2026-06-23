@@ -93,3 +93,42 @@ describe('lerpConfig', () => {
     expect(m.effects.bloom.intensity).toBeCloseTo(0.5, 6);
   });
 });
+
+import { sampleTimeline, type Timeline, type Easing } from './timeline.js';
+
+const kf = (id: string, t: number, over: Record<string, unknown>, easing: Easing = 'linear') =>
+  ({ id, t, easing, config: parseConfig(over) });
+
+describe('sampleTimeline', () => {
+  const tl: Timeline = {
+    duration: 10,
+    keyframes: [kf('a', 0, { speed: 0 }), kf('b', 10, { speed: 4 })],
+  };
+
+  it('clamps time outside [0,duration] to the end keyframes', () => {
+    expect(sampleTimeline(tl, -5).speed).toBeCloseTo(0, 6);
+    expect(sampleTimeline(tl, 99).speed).toBeCloseTo(4, 6);
+  });
+
+  it('interpolates within a segment', () => {
+    expect(sampleTimeline(tl, 5).speed).toBeCloseTo(2, 6);
+  });
+
+  it('selects the correct bracket with 3 keyframes', () => {
+    const tl3: Timeline = {
+      duration: 10,
+      keyframes: [kf('a', 0, { speed: 0 }), kf('b', 5, { speed: 4 }), kf('c', 10, { speed: 0 })],
+    };
+    expect(sampleTimeline(tl3, 2.5).speed).toBeCloseTo(2, 6); // first segment midpoint
+    expect(sampleTimeline(tl3, 7.5).speed).toBeCloseTo(2, 6); // second segment midpoint
+  });
+
+  it('applies the leaving keyframe easing', () => {
+    const eased: Timeline = {
+      duration: 10,
+      keyframes: [kf('a', 0, { speed: 0 }, 'ease-in'), kf('b', 10, { speed: 4 })],
+    };
+    // ease-in at u=0.5 -> 0.25 -> speed 1
+    expect(sampleTimeline(eased, 5).speed).toBeCloseTo(1, 6);
+  });
+});
