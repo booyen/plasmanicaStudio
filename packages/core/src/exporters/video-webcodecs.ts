@@ -63,7 +63,7 @@ export async function exportVideoWebCodecs(
     const kf = Math.max(1, Math.round(fps * 2)); // keyframe ~every 2s
     for (let i = 0; i < times.length; i++) {
       if (encErr) throw encErr;
-      renderFrameToCanvas(r, ctx, base, times[i]!, L, mode, W, H);
+      renderFrameToCanvas(r, ctx, base, times[i]!, L, mode, W, H, opts.timeline);
       const frame = new VideoFrame(ex, { timestamp: Math.round(i * usPerFrame), duration: Math.round(usPerFrame) });
       try {
         encoder.encode(frame, { keyFrame: i % kf === 0 });

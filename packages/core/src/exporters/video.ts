@@ -5,6 +5,7 @@
 //     dissolve. Do not regress this.
 import type { PlasmaRenderer } from '../plasma/renderer.js';
 import { pickH264Codec, exportVideoWebCodecs } from './video-webcodecs.js';
+import { sampleTimeline } from '../plasma/timeline.js';
 
 /** True iff the browser exposes the WebCodecs video encoder API (sync gate). */
 export function supportsWebCodecs(): boolean {
@@ -19,6 +20,7 @@ export type VideoOpts = {
   quality: VideoQuality;
   fps?: number;
   onProgress?: (p: number) => void;
+  timeline?: import('../plasma/timeline.js').Timeline;
 };
 
 export const QUALITY: Record<VideoQuality, { w: number; h: number; bitrate: number }> = {
@@ -67,7 +69,9 @@ const delay = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
 export function renderFrameToCanvas(
   r: PlasmaRenderer, ctx: CanvasRenderingContext2D,
   base: number, tau: number, L: number, mode: VideoMode, W: number, H: number,
+  timeline?: import('../plasma/timeline.js').Timeline,
 ): void {
+  if (timeline) r.setConfig(sampleTimeline(timeline, tau));
   r.renderAt(base + tau);
   ctx.globalAlpha = 1;
   ctx.drawImage(r.element, 0, 0, W, H);
@@ -140,7 +144,7 @@ export async function exportVideoMediaRecorder(
   const start = performance.now();
   for (let i = 0; i < times.length; i++) {
     const tau = times[i]!;
-    renderFrameToCanvas(r, ctx, base, tau, L, mode, W, H);
+    renderFrameToCanvas(r, ctx, base, tau, L, mode, W, H, opts.timeline);
     if (manual) track.requestFrame();
     opts.onProgress?.((i + 1) / times.length);
     const wait = start + (i + 1) * frameMs - performance.now();

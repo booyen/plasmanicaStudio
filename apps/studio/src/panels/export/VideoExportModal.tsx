@@ -5,6 +5,7 @@ import { Modal } from '../../components/ui/modal.js';
 import { Button } from '../../components/ui/button.js';
 import { Select } from '../../components/ui/select.js';
 import { useConfigStore } from '../../stores/config.js';
+import { useTimelineStore } from '../../stores/timeline.js';
 import { rendererRef } from '../../lib/rendererRef.js';
 import { download, exportName } from '../../lib/download.js';
 import { LivePreview } from './LivePreview.js';
@@ -16,15 +17,22 @@ export function VideoExportModal({ open, onClose }: { open: boolean; onClose: ()
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
 
+  const tlKeys = useTimelineStore((s) => s.keyframes.length);
+  const tlDuration = useTimelineStore((s) => s.duration);
+  const [useTl, setUseTl] = useState(true);
+  const hasTimeline = tlKeys >= 2;
+
   const save = async () => {
     const r = rendererRef.current;
     if (!r || busy) return;
     setBusy(true);
     try {
+      const tl = hasTimeline && useTl ? useTimelineStore.getState().timeline() : undefined;
       const { blob, ext } = await exportVideo(r, {
-        durationS: dur,
+        durationS: tl ? tlDuration : dur,
         mode,
         quality: qual,
+        timeline: tl,
         onProgress: (p) => setStatus(`rendering ${Math.round(p * 100)}%`),
       });
       const c = useConfigStore.getState().config;
@@ -73,6 +81,17 @@ export function VideoExportModal({ open, onClose }: { open: boolean; onClose: ()
           <p className="text-[10px] leading-relaxed text-muted-foreground">
             Format: {supportsWebCodecs() ? 'MP4 · H.264' : 'WebM'}
           </p>
+          {hasTimeline && (
+            <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <input type="checkbox" checked={useTl} onChange={(e) => setUseTl(e.target.checked)} />
+              Animate timeline ({tlKeys} keys, {tlDuration}s)
+            </label>
+          )}
+          {hasTimeline && useTl && mode === 'loop' && (
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              For a seamless loop, make the first and last keyframes the same look — otherwise the look jumps at the wrap.
+            </p>
+          )}
           <Button variant="primary" size="full" disabled={busy} onClick={save}>
             {busy ? status || 'rendering…' : 'save video'}
           </Button>
