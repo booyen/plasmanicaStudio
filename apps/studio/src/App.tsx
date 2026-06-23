@@ -15,6 +15,7 @@ import { BottomDock } from './panels/BottomDock.js';
 import { ExportDock } from './panels/ExportDock.js';
 import { surprise } from './lib/surprise.js';
 import { rendererRef } from './lib/rendererRef.js';
+import { bindTimelinePlayback } from './lib/timelinePlayback.js';
 
 const isField = (t: EventTarget | null) => {
   const el = t as HTMLElement | null;
@@ -31,9 +32,11 @@ export function App() {
     rendererRef.current = renderer; // exporters reach the live renderer here
     const unsubCfg = useConfigStore.subscribe((s) => renderer.setConfig(s.config));
     const unsubPause = useStageStore.subscribe((s) => renderer.setPaused(s.paused));
+    const unsubTl = bindTimelinePlayback(renderer);
     return () => {
       unsubCfg();
       unsubPause();
+      unsubTl();
       if (rendererRef.current === renderer) rendererRef.current = null;
     };
   }, []);
