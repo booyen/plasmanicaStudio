@@ -1,5 +1,5 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { seamlessWeight, crossfadeWindow, videoFrameTimes, supportsWebCodecs } from './video.js';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { seamlessWeight, crossfadeWindow, videoFrameTimes, supportsWebCodecs, exportVideo } from './video.js';
 import { buildEmbed } from './embed.js';
 import { defaultConfig } from '../plasma/config-defaults.js';
 
@@ -87,5 +87,29 @@ describe('supportsWebCodecs', () => {
   it('true when both are present', () => {
     g.VideoEncoder = class {}; g.VideoFrame = class {};
     expect(supportsWebCodecs()).toBe(true);
+  });
+});
+
+vi.mock('./video-webcodecs.js', () => ({
+  pickH264Codec: vi.fn(async () => 'avc1.640028'),
+  exportVideoWebCodecs: vi.fn(async () => ({ blob: new Blob(['mp4'], { type: 'video/mp4' }), ext: 'mp4' })),
+}));
+
+describe('exportVideo backend dispatch', () => {
+  const g = globalThis as Record<string, unknown>;
+  const fakeR = { time: 0, beginExport() {}, endExport() {}, renderAt() {}, get element() { return {}; } } as never;
+  afterEach(() => { delete g.VideoEncoder; delete g.VideoFrame; });
+
+  it('uses WebCodecs MP4 when supported and a codec is found', async () => {
+    g.VideoEncoder = class {}; g.VideoFrame = class {};
+    const { ext } = await exportVideo(fakeR, { durationS: 1, mode: 'cont', quality: 'lite', fps: 10 });
+    expect(ext).toBe('mp4');
+  });
+
+  it('falls back to MediaRecorder (rejects in jsdom) when WebCodecs is absent', async () => {
+    delete g.VideoEncoder; delete g.VideoFrame;
+    // jsdom has no MediaRecorder, so the fallback path throws its guard — proving dispatch chose it.
+    await expect(exportVideo(fakeR, { durationS: 1, mode: 'cont', quality: 'lite', fps: 10 }))
+      .rejects.toThrow(/MediaRecorder/);
   });
 });

@@ -4,6 +4,7 @@
 //     end melts into the beginning (B = min(0.7, 0.25·L)), NOT a full-duration
 //     dissolve. Do not regress this.
 import type { PlasmaRenderer } from '../plasma/renderer.js';
+import { pickH264Codec, exportVideoWebCodecs } from './video-webcodecs.js';
 
 /** True iff the browser exposes the WebCodecs video encoder API (sync gate). */
 export function supportsWebCodecs(): boolean {
@@ -85,6 +86,18 @@ function pickMime(): string {
 }
 
 export async function exportVideo(
+  r: PlasmaRenderer, opts: VideoOpts,
+): Promise<{ blob: Blob; ext: string }> {
+  if (supportsWebCodecs()) {
+    const fps = opts.fps ?? 30;
+    const { w: W, h: H, bitrate } = QUALITY[opts.quality];
+    const codec = await pickH264Codec(W, H, fps, bitrate);
+    if (codec) return exportVideoWebCodecs(r, opts, codec);
+  }
+  return exportVideoMediaRecorder(r, opts);
+}
+
+export async function exportVideoMediaRecorder(
   r: PlasmaRenderer,
   opts: VideoOpts,
 ): Promise<{ blob: Blob; ext: string }> {
