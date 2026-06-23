@@ -16,7 +16,7 @@ describe('pickH264Codec', () => {
   });
 
   it('passes width/height/bitrate/framerate through to the probe', async () => {
-    const probe = vi.fn(async () => ({ supported: true }));
+    const probe = vi.fn(async (_cfg: { codec: string; width: number; height: number; framerate?: number; bitrate?: number }) => ({ supported: true }));
     await pickH264Codec(1280, 720, 24, 1_234_000, probe);
     const cfg = probe.mock.calls[0]![0];
     expect(cfg).toMatchObject({ width: 1280, height: 720, framerate: 24, bitrate: 1_234_000 });

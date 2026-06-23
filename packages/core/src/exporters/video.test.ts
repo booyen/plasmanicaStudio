@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { seamlessWeight, crossfadeWindow, videoFrameTimes, supportsWebCodecs } from './video.js';
 import { buildEmbed } from './embed.js';
 import { defaultConfig } from '../plasma/config-defaults.js';
