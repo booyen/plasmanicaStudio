@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { seamlessWeight, crossfadeWindow, videoFrameTimes } from './video.js';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { seamlessWeight, crossfadeWindow, videoFrameTimes, supportsWebCodecs } from './video.js';
 import { buildEmbed } from './embed.js';
 import { defaultConfig } from '../plasma/config-defaults.js';
 
@@ -67,5 +67,25 @@ describe('buildEmbed', () => {
     expect(buildEmbed(defaultConfig, { scriptUrl: 'https://x.example/p.js' })).toContain(
       'src="https://x.example/p.js"',
     );
+  });
+});
+
+describe('supportsWebCodecs', () => {
+  const g = globalThis as Record<string, unknown>;
+  afterEach(() => { delete g.VideoEncoder; delete g.VideoFrame; });
+
+  it('false when VideoEncoder is missing', () => {
+    delete g.VideoEncoder; g.VideoFrame = class {};
+    expect(supportsWebCodecs()).toBe(false);
+  });
+
+  it('false when VideoFrame is missing', () => {
+    g.VideoEncoder = class {}; delete g.VideoFrame;
+    expect(supportsWebCodecs()).toBe(false);
+  });
+
+  it('true when both are present', () => {
+    g.VideoEncoder = class {}; g.VideoFrame = class {};
+    expect(supportsWebCodecs()).toBe(true);
   });
 });

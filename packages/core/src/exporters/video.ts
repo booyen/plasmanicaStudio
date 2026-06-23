@@ -5,6 +5,11 @@
 //     dissolve. Do not regress this.
 import type { PlasmaRenderer } from '../plasma/renderer.js';
 
+/** True iff the browser exposes the WebCodecs video encoder API (sync gate). */
+export function supportsWebCodecs(): boolean {
+  return typeof VideoEncoder !== 'undefined' && typeof VideoFrame !== 'undefined';
+}
+
 export type VideoMode = 'cont' | 'loop';
 export type VideoQuality = 'lite' | 'hd';
 export type VideoOpts = {
