@@ -63,6 +63,16 @@ test.describe('video export', () => {
   });
 });
 
+test.describe('timeline', () => {
+  test('renders a deterministic 2-keyframe midpoint morph', async ({ page }) => {
+    await page.goto('/golden.html');
+    await page.waitForFunction(() => typeof window.renderTimelineMidpoint === 'function');
+    await page.evaluate(() => window.renderTimelineMidpoint());
+    await page.waitForTimeout(120);
+    await expect(page.locator('canvas')).toHaveScreenshot('timeline-midpoint.png');
+  });
+});
+
 test.describe('plasma visual goldens', () => {
   for (const s of SAMPLES) {
     test(s.name, async ({ page }) => {
