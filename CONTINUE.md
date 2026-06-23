@@ -18,7 +18,7 @@ seeded randomize, history nav, share links, exporters (PNG / two-mode video / em
 Playwright visual goldens, and the recent fluid-displacement and still-image/video-export
 fixes.
 
-Last commit: `645c526 docs: post-effects pipeline design spec`.
+Latest work: WebCodecs MP4 export (M4 complete) — see the section below.
 
 ## Done — post-effects pipeline (2026-06-22)
 
@@ -43,7 +43,38 @@ chain between the plasma FBO and the gradient composite. Implemented test-first:
 > Heads-up: the embed budget now has only ~1.4 KB gzip headroom. Watch it if you add
 > more effect shaders.
 
+## Done — WebCodecs MP4 export (2026-06-23) → M4 complete
+
+`exportVideo` now emits real H.264 **MP4** via WebCodecs, rendered *faster than
+realtime*, and transparently falls back to the existing MediaRecorder **WebM**
+path where WebCodecs is unavailable. This completes **Milestone 4** (post pipeline
++ WebCodecs MP4). Implemented test-first per
+[the plan](docs/superpowers/plans/2026-06-23-webcodecs-mp4-export.md):
+
+- **Core:** new backend in [video-webcodecs.ts](packages/core/src/exporters/video-webcodecs.ts)
+  (`pickH264Codec` probes High→Main→Baseline via `isConfigSupported`;
+  `exportVideoWebCodecs` encodes `VideoFrame`s and muxes MP4 with `mp4-muxer`,
+  no realtime pacing, `encodeQueueSize` backpressure, `endExport`/`frame.close`
+  in `finally`). [video.ts](packages/core/src/exporters/video.ts) gains
+  `supportsWebCodecs()`, a shared `renderFrameToCanvas` compositor, and an
+  `exportVideo` dispatcher; the old body is preserved as `exportVideoMediaRecorder`.
+- **UI:** [VideoExportModal.tsx](apps/studio/src/panels/export/VideoExportModal.tsx)
+  — backend-neutral "rendering N%" wording + a read-only "MP4 · H.264 / WebM"
+  caption. No new controls; format selection is automatic.
+- **Reach & budget:** `mp4-muxer` is in `packages/core` only and imported solely by
+  the exporters, so it does NOT reach the `<plasma-bg>` embed — embed still 13.58 KB
+  gzip. (Studio bundle grew ~10 KB gzip, which is fine — only the embed is budgeted.)
+- **Tests:** unit (`pickH264Codec` selection, `supportsWebCodecs` branches, dispatch
+  routing) + a Playwright check that drives `exportVideo` in real Chromium and
+  asserts a `video/mp4` blob with an `ftyp` box. Full suite green: 81 unit, 14 visual.
+
+> Heads-up: `mp4-muxer@5.2.2` is npm-deprecated (successor: `mediabunny`) — it works
+> and its API is intact, but consider migrating. It also pulls `@types/dom-webcodecs`
+> as a transitive runtime dep.
+
 ## Next ideas (backlog)
 
-Effects extensions noted as out-of-scope in the spec: chromatic aberration, vignette,
-per-effect presets, WebGL2/float FBOs. See [PLASMA_STUDIO_ROADMAP.md](PLASMA_STUDIO_ROADMAP.md).
+Effects extensions noted as out-of-scope in the post-effects spec: chromatic
+aberration, vignette, per-effect presets, WebGL2/float FBOs. Plus: migrate the MP4
+muxer off deprecated `mp4-muxer` to `mediabunny`; optional 4K export tier (now cheap
+with faster-than-realtime WebCodecs). See [PLASMA_STUDIO_ROADMAP.md](PLASMA_STUDIO_ROADMAP.md).
