@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>plasma-bg — runtime API demo</title>
+    <style>
+      html, body { margin: 0; font-family: system-ui, sans-serif; color: #fff; }
+      plasma-bg { position: fixed; inset: 0; z-index: -1; display: block; }
+      section { height: 100vh; display: grid; place-content: center; gap: 1rem; text-align: center; }
+      .controls { display: flex; gap: .75rem; justify-content: center; }
+      button { padding: .6rem 1rem; border: 1px solid #fff6; background: #0006; color: #fff; border-radius: .5rem; cursor: pointer; }
+      .scroll { height: 300vh; }
+    </style>
+  </head>
+  <body>
+    <plasma-bg></plasma-bg>
+
+    <section>
+      <h1>Autoplay timeline</h1>
+      <div class="controls">
+        <button id="play">play()</button>
+        <button id="pause">pause()</button>
+        <button id="warm">animateTo warm</button>
+        <button id="cool">set cool (instant)</button>
+      </div>
+    </section>
+
+    <section class="scroll">
+      <h1>Scroll to scrub seek()</h1>
+      <p>This section drives <code>bg.seek(progress × duration)</code> from scroll position.</p>
+    </section>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
