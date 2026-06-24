@@ -110,10 +110,31 @@ describe('lerpConfig', () => {
   });
 });
 
-import { sampleTimeline, type Timeline, type Easing } from './timeline.js';
+import { sampleTimeline, sampleTimelineRaw, type Timeline, type Easing } from './timeline.js';
 
 const kf = (id: string, t: number, over: Record<string, unknown>, easing: Easing = 'linear') =>
   ({ id, t, easing, config: parseConfig(over) });
+
+describe('sampleTimelineRaw', () => {
+  const tl: Timeline = {
+    duration: 10,
+    keyframes: [
+      { id: 'a', t: 0, easing: 'linear', config: { ...defaultConfig, speed: 1 } },
+      { id: 'b', t: 10, easing: 'linear', config: { ...defaultConfig, speed: 3 } },
+    ],
+  };
+
+  it('matches sampleTimeline across the range', () => {
+    for (const time of [-1, 0, 2.5, 5, 7.5, 10, 99]) {
+      expect(sampleTimelineRaw(tl, time)).toEqual(sampleTimeline(tl, time));
+    }
+  });
+
+  it('returns the exact endpoint config objects at/after the ends', () => {
+    expect(sampleTimelineRaw(tl, 0)).toBe(tl.keyframes[0]!.config);
+    expect(sampleTimelineRaw(tl, 10)).toBe(tl.keyframes[1]!.config);
+  });
+});
 
 describe('sampleTimeline', () => {
   const tl: Timeline = {

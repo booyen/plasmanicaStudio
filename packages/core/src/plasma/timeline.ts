@@ -118,8 +118,12 @@ export interface Timeline {
   keyframes: Keyframe[];
 }
 
-/** The morphed look at `time` seconds. Keyframes assumed sorted by t. */
-export function sampleTimeline(tl: Timeline, time: number): CoreConfig {
+/** Shared sampler. `interp` is the look-interpolator (raw or clamped). */
+function sampleWith(
+  tl: Timeline,
+  time: number,
+  interp: (a: CoreConfig, b: CoreConfig, t: number) => CoreConfig,
+): CoreConfig {
   const ks = tl.keyframes;
   if (ks.length === 0) throw new Error('sampleTimeline: timeline has no keyframes');
   const clamped = Math.min(tl.duration, Math.max(0, time));
@@ -132,5 +136,15 @@ export function sampleTimeline(tl: Timeline, time: number): CoreConfig {
   const kB = ks[i + 1]!;
   if (kB.t === kA.t) return kB.config;
   const u = (clamped - kA.t) / (kB.t - kA.t);
-  return lerpConfig(kA.config, kB.config, applyEasing(kA.easing, u));
+  return interp(kA.config, kB.config, applyEasing(kA.easing, u));
+}
+
+/** The morphed look at `time` seconds, parseConfig-clamped. */
+export function sampleTimeline(tl: Timeline, time: number): CoreConfig {
+  return sampleWith(tl, time, lerpConfig);
+}
+
+/** The morphed look at `time` seconds, zod-free (embed path). */
+export function sampleTimelineRaw(tl: Timeline, time: number): CoreConfig {
+  return sampleWith(tl, time, lerpConfigRaw);
 }
