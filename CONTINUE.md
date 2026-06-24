@@ -130,7 +130,7 @@ deliverable of **Milestone 5**. Implemented test-first per
   fails at ≥ 16.5 KB). Current size: **15.70 KB gzip**.
 - **Demo:** [packages/embed/demo/](packages/embed/demo/) — autoplay timeline loop +
   GSAP ScrollTrigger scroll-scrub (GSAP via CDN only; no embed bundle impact).
-- **Tests:** 124 unit tests (99 core + 10 embed + 15 studio), 16 visual test cases
+- **Tests:** 126 unit tests (99 core + 12 embed + 15 studio), 16 visual test cases
   (15 screenshot goldens — including the new `embed-seek-midpoint` — + the MP4 probe).
   Full suite green.
 
