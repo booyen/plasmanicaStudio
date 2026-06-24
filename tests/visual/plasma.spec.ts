@@ -78,6 +78,7 @@ test.describe('embed', () => {
     await page.goto('/golden.html');
     await page.waitForFunction(() => typeof window.renderEmbedSeekMidpoint === 'function');
     await page.evaluate(() => window.renderEmbedSeekMidpoint());
+    await page.waitForTimeout(120);
     await expect(page.locator('canvas')).toHaveScreenshot('embed-seek-midpoint.png');
   });
 });

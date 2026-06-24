@@ -24,6 +24,14 @@ export interface ControllerEnv {
 
 export interface AnimateOpts {
   duration?: number; // seconds, default 0.6
+  /**
+   * Named easing or a custom function.
+   *
+   * A custom function should map [0,1] → [0,1]. Easings that overshoot
+   * (returning values outside that range, e.g. elastic or back curves) can
+   * drive config fields out of their valid range, because the embed path
+   * interpolates raw — without a zod re-clamp.
+   */
   easing?: Easing | ((u: number) => number); // default 'ease-in-out'
 }
 
@@ -155,8 +163,8 @@ export class PlasmaController {
   seek(t: number): void {
     this.cancel();
     if (!this.tl) return;
-    this.prog = t;
-    this.renderer.setConfig(sampleTimelineRaw(this.tl, t));
+    this.prog = Math.min(this.tl.duration, Math.max(0, t));
+    this.renderer.setConfig(sampleTimelineRaw(this.tl, this.prog));
   }
 
   /** Tear down (called on element disconnect). */

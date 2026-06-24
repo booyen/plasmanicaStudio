@@ -98,6 +98,28 @@ describe('PlasmaController timeline', () => {
     expect(env.pending).toBe(0);
   });
 
+  it('seek clamps progress to duration when t exceeds it', () => {
+    const r = fakeRenderer();
+    const env = fakeEnv();
+    const c = new PlasmaController(r, defaultConfig, env);
+    c.timeline(twoKf()); // duration = 10
+    c.seek(999);
+    expect(c.progress).toBe(10);
+    expect(r.applied.at(-1)!.speed).toBeCloseTo(3, 6); // last keyframe
+    expect(env.pending).toBe(0);
+  });
+
+  it('seek clamps progress to 0 when t is negative', () => {
+    const r = fakeRenderer();
+    const env = fakeEnv();
+    const c = new PlasmaController(r, defaultConfig, env);
+    c.timeline(twoKf()); // duration = 10
+    c.seek(-5);
+    expect(c.progress).toBe(0);
+    expect(r.applied.at(-1)!.speed).toBeCloseTo(1, 6); // first keyframe
+    expect(env.pending).toBe(0);
+  });
+
   it('play advances progress each frame', () => {
     const r = fakeRenderer();
     const env = fakeEnv();

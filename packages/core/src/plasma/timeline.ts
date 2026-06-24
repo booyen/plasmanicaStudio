@@ -125,7 +125,7 @@ function sampleWith(
   interp: (a: CoreConfig, b: CoreConfig, t: number) => CoreConfig,
 ): CoreConfig {
   const ks = tl.keyframes;
-  if (ks.length === 0) throw new Error('sampleTimeline: timeline has no keyframes');
+  if (ks.length === 0) throw new Error('timeline has no keyframes');
   const clamped = Math.min(tl.duration, Math.max(0, time));
   if (clamped <= ks[0]!.t) return ks[0]!.config;
   const last = ks[ks.length - 1]!;

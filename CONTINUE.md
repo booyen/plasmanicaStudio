@@ -137,6 +137,11 @@ deliverable of **Milestone 5**. Implemented test-first per
 > Remaining M5 work: engine #2 (mesh gradient, or reaction-diffusion as the more
 > distinctive alternative — see §9 in PLASMA_STUDIO_ROADMAP.md).
 
+> Heads-up: `packages/embed/package.json` currently points `main`/`types`/`exports`
+> at `./src/plasma-bg.ts` so the studio can import the source directly for the
+> Playwright golden harness. Before any external npm publish this should be split:
+> external consumers should get the built `dist/plasma-bg.js`, not raw TypeScript.
+
 ## Next ideas (backlog)
 
 Effects extensions noted as out-of-scope in the post-effects spec: chromatic
