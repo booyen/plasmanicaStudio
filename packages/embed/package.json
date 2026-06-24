@@ -2,9 +2,13 @@
   "name": "@effects/embed",
   "version": "0.0.0",
   "type": "module",
-  "main": "./dist/plasma-bg.js",
+  "main": "./src/plasma-bg.ts",
   "module": "./dist/plasma-bg.js",
-  "files": ["dist"],
+  "types": "./src/plasma-bg.ts",
+  "exports": {
+    ".": "./src/plasma-bg.ts"
+  },
+  "files": ["dist", "src"],
   "scripts": {
     "build": "vite build && node scripts/check-size.mjs",
     "test": "vitest run"

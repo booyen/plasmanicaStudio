@@ -3,6 +3,7 @@
 // seek time — so the same config always yields the same pixels. Driven from the
 // spec via window.renderGolden().
 import { PlasmaRenderer, parseConfig, exportVideo, sampleTimeline, type CoreConfig, type Timeline } from '@effects/core';
+import { PlasmaController } from '@effects/embed';
 
 const W = 480;
 const H = 270;
@@ -21,6 +22,7 @@ declare global {
     renderGolden: (cfg: Partial<CoreConfig>, t: number) => void;
     exportMp4Probe: () => Promise<{ type: string; size: number; ftyp: string }>;
     renderTimelineMidpoint: () => void;
+    renderEmbedSeekMidpoint: () => void;
   }
 }
 
@@ -47,6 +49,24 @@ window.renderTimelineMidpoint = () => {
   canvas.width = W;
   canvas.height = H;
   renderer.setConfig(mid);
+  renderer.seek(12.5);
+  renderer.renderAt(12.5);
+};
+
+window.renderEmbedSeekMidpoint = () => {
+  const base = { grain: 0, cursor: { on: false, modes: [] as string[] } };
+  const tl: Timeline = {
+    duration: 10,
+    keyframes: [
+      { id: 'a', t: 0, easing: 'linear', config: parseConfig({ ...base, motion: 'Classic', palette: ['#2b5fff', '#00e0d0'] }) },
+      { id: 'b', t: 10, easing: 'linear', config: parseConfig({ ...base, motion: 'Classic', palette: ['#ff7a3c', '#ff3c9e'] }) },
+    ],
+  };
+  canvas.width = W;
+  canvas.height = H;
+  const controller = new PlasmaController(renderer, renderer.getConfig());
+  controller.timeline(tl);
+  controller.seek(5); // midpoint → applies sampleTimelineRaw to the renderer
   renderer.seek(12.5);
   renderer.renderAt(12.5);
 };

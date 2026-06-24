@@ -73,6 +73,15 @@ test.describe('timeline', () => {
   });
 });
 
+test.describe('embed', () => {
+  test('embed seek midpoint matches the core timeline midpoint', async ({ page }) => {
+    await page.goto('/golden.html');
+    await page.waitForFunction(() => typeof window.renderEmbedSeekMidpoint === 'function');
+    await page.evaluate(() => window.renderEmbedSeekMidpoint());
+    await expect(page.locator('canvas')).toHaveScreenshot('embed-seek-midpoint.png');
+  });
+});
+
 test.describe('plasma visual goldens', () => {
   for (const s of SAMPLES) {
     test(s.name, async ({ page }) => {
