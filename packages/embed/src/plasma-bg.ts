@@ -2,9 +2,15 @@
 // from a `config` attribute (JSON). No React, no zod (config is trusted JSON, not
 // re-validated), so the bundle stays small enough to drop onto any page.
 import { PlasmaRenderer, paletteGradientCss, defaultConfig, type CoreConfig } from '@effects/core';
+import { PlasmaController, type AnimateOpts } from './controller.js';
+import type { Timeline, DeepPartial } from '@effects/core';
+
+export { PlasmaController } from './controller.js';
+export type { ControllerEnv, AnimateOpts, MorphTarget } from './controller.js';
 
 export class PlasmaBg extends HTMLElement {
   private renderer: PlasmaRenderer | null = null;
+  private controller: PlasmaController | null = null;
 
   /** Trusted config from the `config` attribute (merged over defaults), or defaults. */
   private readConfig(): CoreConfig {
@@ -37,6 +43,7 @@ export class PlasmaBg extends HTMLElement {
     }
     renderer.setConfig(cfg);
     renderer.resize();
+    this.controller = new PlasmaController(renderer, cfg);
     const onResize = () => renderer.resize();
     window.addEventListener('resize', onResize);
 
@@ -63,10 +70,44 @@ export class PlasmaBg extends HTMLElement {
   private cleanup: (() => void) | null = null;
 
   disconnectedCallback() {
+    this.controller?.dispose();
+    this.controller = null;
     this.cleanup?.();
     this.cleanup = null;
     this.renderer?.dispose();
     this.renderer = null;
+  }
+
+  set(patch: DeepPartial<CoreConfig>): void {
+    this.controller?.set(patch);
+  }
+
+  animateTo(patch: DeepPartial<CoreConfig>, opts?: AnimateOpts): Promise<void> {
+    return this.controller?.animateTo(patch, opts) ?? Promise.resolve();
+  }
+
+  timeline(tl: Timeline): void {
+    this.controller?.timeline(tl);
+  }
+
+  play(opts?: { loop?: boolean }): void {
+    this.controller?.play(opts);
+  }
+
+  pause(): void {
+    this.controller?.pause();
+  }
+
+  seek(t: number): void {
+    this.controller?.seek(t);
+  }
+
+  getConfig(): CoreConfig | null {
+    return this.controller?.getConfig() ?? null;
+  }
+
+  get progress(): number {
+    return this.controller?.progress ?? 0;
   }
 }
 
