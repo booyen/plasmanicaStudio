@@ -538,9 +538,6 @@ Create `packages/embed/src/controller.ts`:
 // renderer's own motion loop is untouched — we only call setConfig (two clocks).
 import {
   mergeConfigPatch,
-  lerpConfigRaw,
-  sampleTimelineRaw,
-  applyEasing,
   type CoreConfig,
   type Timeline,
   type Easing,
@@ -612,7 +609,7 @@ export class PlasmaController {
 }
 ```
 
-(`lerpConfigRaw`, `sampleTimelineRaw`, `applyEasing`, `Timeline` are imported now and used in Tasks 6–7; TS allows the unused imports only if referenced — they are referenced once those tasks land. To keep Task 5 compiling on its own, the imports above that are not yet used will trigger no error under the embed's esbuild build, but **will** under tsc. The embed build is esbuild-only (`vite build`), and vitest uses esbuild too — so unused imports are tolerated here. Do not add a tsc typecheck step to the embed until Task 7 lands.)
+(Task 5 imports only what it uses — `mergeConfigPatch` and the types. Tasks 6 and 7 extend this import line as they add `animateTo` / timeline methods. `tsconfig.base.json` sets `noUnusedLocals: true`, so never import a symbol before the task that uses it.)
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -687,7 +684,21 @@ Expected: FAIL — `animateTo is not a function`.
 
 - [ ] **Step 3: Implement `animateTo`**
 
-In `packages/embed/src/controller.ts`, add a method to the `PlasmaController` class (after `set`):
+First, extend the `@effects/core` import at the top of `packages/embed/src/controller.ts` to add the two symbols this task uses — `lerpConfigRaw` and `applyEasing`:
+
+```ts
+import {
+  mergeConfigPatch,
+  lerpConfigRaw,
+  applyEasing,
+  type CoreConfig,
+  type Timeline,
+  type Easing,
+  type DeepPartial,
+} from '@effects/core';
+```
+
+Then add a method to the `PlasmaController` class (after `set`):
 
 ```ts
 /** Tween the current look toward a merged target. Resolves on completion. */
@@ -836,7 +847,22 @@ Expected: FAIL — `timeline is not a function`.
 
 - [ ] **Step 3: Implement the timeline methods**
 
-In `packages/embed/src/controller.ts`, add to the `PlasmaController` class (after `animateTo`):
+First, add `sampleTimelineRaw` to the `@effects/core` import at the top of `packages/embed/src/controller.ts`:
+
+```ts
+import {
+  mergeConfigPatch,
+  lerpConfigRaw,
+  sampleTimelineRaw,
+  applyEasing,
+  type CoreConfig,
+  type Timeline,
+  type Easing,
+  type DeepPartial,
+} from '@effects/core';
+```
+
+Then add to the `PlasmaController` class (after `animateTo`):
 
 ```ts
 /** Load a timeline; resets progress to 0. Does not start playback. */
@@ -1333,4 +1359,4 @@ git commit -m "docs: embed runtime API done — handoff + roadmap"
 
 **Type consistency:** `lerpConfigRaw`/`sampleTimelineRaw`/`mergeConfigPatch`/`DeepPartial` defined in Tasks 1–3 and consumed by the controller in Tasks 5–7 with matching signatures. `ControllerEnv`/`AnimateOpts`/`MorphTarget` defined in Task 5, reused in 6–8. Element delegation in Task 8 matches controller method signatures. ✓
 
-**Note on Task 5 unused imports:** `lerpConfigRaw`/`sampleTimelineRaw`/`applyEasing`/`Timeline` are imported in Task 5 but first *used* in Tasks 6–7. The embed builds with esbuild (`vite build`) and tests with vitest/esbuild — neither errors on unused imports — so Tasks 5–7 each compile and test green independently. No tsc `noUnusedLocals` step runs against the embed. ✓
+**Note on incremental imports:** `tsconfig.base.json` sets `noUnusedLocals: true`. Each of Tasks 5–7 imports only the symbols it uses and extends the import line as later methods land (Task 6 adds `lerpConfigRaw`/`applyEasing`; Task 7 adds `sampleTimelineRaw`). No task leaves an unused import. ✓
