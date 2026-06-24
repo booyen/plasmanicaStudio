@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { applyEasing, lerpConfig } from './timeline.js';
+import { applyEasing, lerpConfig, lerpConfigRaw } from './timeline.js';
 import { hex2rgb } from './gl.js';
 import { oklabMix } from './overlay.js';
 import { rgb2hex } from './palette.js';
 import { parseConfig } from './config.js';
+import { defaultConfig } from './config-defaults.js';
 
 const cfg = (over: Record<string, unknown>) => parseConfig(over);
 
@@ -30,6 +31,21 @@ describe('applyEasing', () => {
 
   it('ease-in-out is symmetric around 0.5', () => {
     expect(applyEasing('ease-in-out', 0.25) + applyEasing('ease-in-out', 0.75)).toBeCloseTo(1, 9);
+  });
+});
+
+describe('lerpConfigRaw', () => {
+  const a = defaultConfig;
+  const b = { ...defaultConfig, speed: 4, coverage: 0.9, palette: ['#ff0000'], bg: '#102030' };
+
+  it('produces the same result as lerpConfig (parseConfig is redundant for valid endpoints)', () => {
+    for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+      expect(lerpConfigRaw(a, b, t)).toEqual(lerpConfig(a, b, t));
+    }
+  });
+
+  it('does not import zod-validated parseConfig (numbers interpolate linearly)', () => {
+    expect(lerpConfigRaw(a, b, 0.5).speed).toBeCloseTo((a.speed + 4) / 2, 6);
   });
 });
 

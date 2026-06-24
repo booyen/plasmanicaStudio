@@ -32,14 +32,13 @@ function lerpPalette(a: string[], b: string[], t: number): string[] {
   return Array.from({ length: n }, (_, i) => hexMix(at(a, i), at(b, i), t));
 }
 
-/**
- * Interpolate two looks. Numbers/tuples lerp; hex colors + palette mix in OKLab;
- * discrete fields take side `a` while t<0.5 else `b`. Explicit field-by-field
- * construction (the schema is fixed) — output is parseConfig-clamped.
- */
-export function lerpConfig(a: CoreConfig, b: CoreConfig, t: number): CoreConfig {
+/** Interpolated look WITHOUT a parseConfig re-clamp. Valid when both endpoints
+ * are already valid CoreConfigs (field-wise lerp of in-range values stays in
+ * range; discrete fields hard-switch between two valid values). The embed uses
+ * this to avoid pulling zod. */
+export function lerpConfigRaw(a: CoreConfig, b: CoreConfig, t: number): CoreConfig {
   const d = t < 0.5 ? a : b; // discrete source
-  return parseConfig({
+  return {
     version: 1,
     motion: d.motion,
     material: d.material,
@@ -99,7 +98,12 @@ export function lerpConfig(a: CoreConfig, b: CoreConfig, t: number): CoreConfig 
         radius: lerp(a.effects.bloom.radius, b.effects.bloom.radius, t),
       },
     },
-  });
+  };
+}
+
+/** Interpolate two looks, parseConfig-clamped (studio/exporter path). */
+export function lerpConfig(a: CoreConfig, b: CoreConfig, t: number): CoreConfig {
+  return parseConfig(lerpConfigRaw(a, b, t));
 }
 
 export interface Keyframe {
