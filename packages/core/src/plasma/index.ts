@@ -10,3 +10,4 @@ export * from './config.js';
 export * from './renderer.js';
 export * from './randomize.js';
 export * from './timeline.js';
+export * from './merge.js';
