@@ -39,3 +39,39 @@ describe('PlasmaController.set', () => {
     expect(c.progress).toBe(0);
   });
 });
+
+describe('PlasmaController.animateTo', () => {
+  it('tweens current → target over the duration and resolves at u=1', async () => {
+    const r = fakeRenderer();
+    const env = fakeEnv();
+    const c = new PlasmaController(r, defaultConfig, env);
+    const p = c.animateTo({ speed: defaultConfig.speed + 2 }, { duration: 1, easing: 'linear' });
+
+    env.tick(0);    // start frame, u=0
+    expect(r.applied.at(-1)!.speed).toBeCloseTo(defaultConfig.speed, 6);
+    env.tick(500);  // u=0.5
+    expect(r.applied.at(-1)!.speed).toBeCloseTo(defaultConfig.speed + 1, 6);
+    env.tick(1000); // u=1, resolves
+    await p;
+    expect(c.getConfig().speed).toBeCloseTo(defaultConfig.speed + 2, 6);
+    expect(env.pending).toBe(0);
+  });
+
+  it('under reduced-motion, snaps to target without scheduling a frame', async () => {
+    const r = fakeRenderer();
+    const env = fakeEnv(true);
+    const c = new PlasmaController(r, defaultConfig, env);
+    await c.animateTo({ speed: 5 }, { duration: 1 });
+    expect(c.getConfig().speed).toBe(5);
+    expect(env.pending).toBe(0);
+  });
+
+  it('starting a second animateTo cancels the first (mutual exclusion)', () => {
+    const env = fakeEnv();
+    const c = new PlasmaController(fakeRenderer(), defaultConfig, env);
+    c.animateTo({ speed: 2 }, { duration: 1 });
+    expect(env.pending).toBe(1);
+    c.animateTo({ speed: 8 }, { duration: 1 });
+    expect(env.pending).toBe(1); // old frame cancelled, one new frame queued
+  });
+});
