@@ -4,6 +4,7 @@
 import {
   mergeConfigPatch,
   lerpConfigRaw,
+  sampleTimelineRaw,
   applyEasing,
   type CoreConfig,
   type Timeline,
@@ -102,6 +103,60 @@ export class PlasmaController {
       };
       this.raf = this.env.raf(tick);
     });
+  }
+
+  /** Load a timeline; resets progress to 0. Does not start playback. */
+  timeline(tl: Timeline): void {
+    this.tl = tl;
+    this.prog = 0;
+  }
+
+  /** Self-drive the loaded timeline. Loops by default. */
+  play(opts: { loop?: boolean } = {}): void {
+    this.cancel();
+    if (!this.tl) return;
+    const loop = opts.loop ?? true;
+    const tl = this.tl;
+
+    if (this.env.reducedMotion()) {
+      this.renderer.setConfig(sampleTimelineRaw(tl, 0)); // first keyframe still
+      return;
+    }
+
+    let prev = -1;
+    const tick = (ms: number) => {
+      if (prev < 0) prev = ms;
+      const dt = (ms - prev) / 1000;
+      prev = ms;
+      this.prog += dt;
+      if (this.prog >= tl.duration) {
+        if (loop) {
+          this.prog = tl.duration > 0 ? this.prog % tl.duration : 0;
+        } else {
+          this.prog = tl.duration;
+          this.renderer.setConfig(sampleTimelineRaw(tl, this.prog));
+          this.raf = 0;
+          return;
+        }
+      }
+      this.renderer.setConfig(sampleTimelineRaw(tl, this.prog));
+      this.raf = this.env.raf(tick);
+    };
+    this.raf = this.env.raf(tick);
+  }
+
+  /** Stop self-driven playback; keep progress. */
+  pause(): void {
+    this.cancel();
+  }
+
+  /** Sample the loaded timeline at absolute time `t` and apply. Stateless —
+   * for external scrubbing (GSAP/ScrollTrigger). Cancels any running driver. */
+  seek(t: number): void {
+    this.cancel();
+    if (!this.tl) return;
+    this.prog = t;
+    this.renderer.setConfig(sampleTimelineRaw(this.tl, t));
   }
 
   /** Tear down (called on element disconnect). */

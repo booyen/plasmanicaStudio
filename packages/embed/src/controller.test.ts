@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defaultConfig, type CoreConfig } from '@effects/core';
+import { defaultConfig, type CoreConfig, type Timeline } from '@effects/core';
 import { PlasmaController, type ControllerEnv } from './controller.js';
 
 // A fake renderer that records the configs it's given.
@@ -73,5 +73,72 @@ describe('PlasmaController.animateTo', () => {
     expect(env.pending).toBe(1);
     c.animateTo({ speed: 8 }, { duration: 1 });
     expect(env.pending).toBe(1); // old frame cancelled, one new frame queued
+  });
+});
+
+function twoKf(): Timeline {
+  return {
+    duration: 10,
+    keyframes: [
+      { id: 'a', t: 0, easing: 'linear', config: { ...defaultConfig, speed: 1 } },
+      { id: 'b', t: 10, easing: 'linear', config: { ...defaultConfig, speed: 3 } },
+    ],
+  };
+}
+
+describe('PlasmaController timeline', () => {
+  it('seek is stateless: samples + applies without scheduling a frame', () => {
+    const r = fakeRenderer();
+    const env = fakeEnv();
+    const c = new PlasmaController(r, defaultConfig, env);
+    c.timeline(twoKf());
+    c.seek(5); // midpoint
+    expect(r.applied.at(-1)!.speed).toBeCloseTo(2, 6);
+    expect(c.progress).toBe(5);
+    expect(env.pending).toBe(0);
+  });
+
+  it('play advances progress each frame', () => {
+    const r = fakeRenderer();
+    const env = fakeEnv();
+    const c = new PlasmaController(r, defaultConfig, env);
+    c.timeline(twoKf());
+    c.play();
+    env.tick(0);     // prev=0, progress 0
+    env.tick(2000);  // +2s → progress 2
+    expect(c.progress).toBeCloseTo(2, 6);
+    expect(r.applied.at(-1)!.speed).toBeCloseTo(1 + (3 - 1) * 0.2, 6);
+  });
+
+  it('play loops past the end by default', () => {
+    const env = fakeEnv();
+    const c = new PlasmaController(fakeRenderer(), defaultConfig, env);
+    c.timeline(twoKf());
+    c.play();
+    env.tick(0);
+    env.tick(12000); // +12s on a 10s timeline → wraps to 2
+    expect(c.progress).toBeCloseTo(2, 6);
+  });
+
+  it('pause stops the driver but keeps progress', () => {
+    const env = fakeEnv();
+    const c = new PlasmaController(fakeRenderer(), defaultConfig, env);
+    c.timeline(twoKf());
+    c.play();
+    env.tick(0);
+    env.tick(3000);
+    c.pause();
+    expect(env.pending).toBe(0);
+    expect(c.progress).toBeCloseTo(3, 6);
+  });
+
+  it('under reduced-motion, play renders the first keyframe still and does not loop', () => {
+    const r = fakeRenderer();
+    const env = fakeEnv(true);
+    const c = new PlasmaController(r, defaultConfig, env);
+    c.timeline(twoKf());
+    c.play();
+    expect(r.applied.at(-1)!.speed).toBeCloseTo(1, 6); // first keyframe
+    expect(env.pending).toBe(0);
   });
 });
