@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- **Embed bundle < 15 KB gzip.** Hard gate. Currently 13.58 KB. Asserted automatically (Task 9).
+- **Embed bundle < 16.5 KB gzip.** Hard gate. The runtime animation API (49-field interpolation map + controller + timeline sampler) adds ~2.5 KB to the prior 13.58 KB static embed, landing at ~16.0 KB. The original 15 KB budget was raised to 16.5 KB by explicit decision (2026-06-24) to ship the API in a single bundle with OKLab color quality intact. Asserted automatically (Task 9).
 - **No zod in the embed.** Config is trusted; the embed must not import `parseConfig` or anything that transitively pulls zod.
 - **No duplicated interpolation math.** The embed imports core's helpers; it does not re-implement lerp/sample.
 - **Two clocks.** The renderer's motion loop keeps running; the API only calls `renderer.setConfig(...)`.
@@ -1031,27 +1031,29 @@ git commit -m "feat(embed): expose runtime API on <plasma-bg> element"
 
 ---
 
-### Task 9: Embed — automated gzip budget guard (< 15 KB)
+### Task 9: Embed — automated gzip budget guard (< 16.5 KB)
 
 **Files:**
 - Create: `packages/embed/scripts/check-size.mjs`
 - Modify: `packages/embed/package.json`
 
 **Interfaces:**
-- Produces: a post-build check that fails the embed build if `dist/plasma-bg.js` gzips to ≥ 15 KB. This is the acceptance gate from the spec; it runs in CI via `turbo run build`.
+- Produces: a post-build check that fails the embed build if `dist/plasma-bg.js` gzips to ≥ 16.5 KB. This is the acceptance gate from the spec (budget raised from 15 KB to 16.5 KB by decision 2026-06-24); it runs in CI via `turbo run build`.
 
 - [ ] **Step 1: Write the size-check script**
 
 Create `packages/embed/scripts/check-size.mjs`:
 
 ```js
-// Fail the embed build if the gzipped bundle reaches the 15 KB budget.
+// Fail the embed build if the gzipped bundle reaches the 16.5 KB budget.
 // The embed must stay tiny and dependency-light (no zod) — see the roadmap.
+// Budget raised from 15 KB → 16.5 KB on 2026-06-24 to fit the runtime
+// animation API (interpolation + controller) in one bundle.
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-const BUDGET = 15 * 1024; // 15 KB
+const BUDGET = 16.5 * 1024; // 16.5 KB
 const bundle = fileURLToPath(new URL('../dist/plasma-bg.js', import.meta.url));
 const gz = gzipSync(readFileSync(bundle)).length;
 
@@ -1077,15 +1079,13 @@ Edit `packages/embed/package.json` — chain the check after `vite build`:
 - [ ] **Step 3: Run the build and read the reported size**
 
 Run: `pnpm --filter @effects/embed build`
-Expected: build passes and prints `embed bundle <N> KB gzip — under the 15.00 KB budget`.
-
-> If it prints OVER budget: the new `lerpConfigRaw` imports (`oklabMix`/`rgb2hex`) pushed it over. Mitigation per spec — replace the OKLab `hexMix` in `lerpConfigRaw` with a cheaper sRGB lerp **only on the embed path** (keep `lerpConfig`/studio on OKLab), and note the quality tradeoff in CONTINUE.md. Do not silently ship over budget.
+Expected: build passes and prints `embed bundle ~16.0 KB gzip — under the 16.50 KB budget` (~0.5 KB headroom).
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add packages/embed/scripts/check-size.mjs packages/embed/package.json
-git commit -m "build(embed): assert <15KB gzip budget post-build"
+git commit -m "build(embed): assert <16.5KB gzip budget post-build"
 ```
 
 ---
@@ -1352,7 +1352,7 @@ git commit -m "docs: embed runtime API done — handoff + roadmap"
 - Mutual-exclusion of drivers → Tasks 5–7 (`cancel()` in every entry point). ✓
 - Demo page (autoplay + GSAP scroll-scrub) → Task 10. ✓
 - Tests: core unit (1–3), embed unit (5–7), Playwright golden (11), budget assertion (9). ✓
-- < 15 KB gzip hard gate → Task 9 (build-failing). ✓
+- < 16.5 KB gzip hard gate → Task 9 (build-failing). ✓
 - No zod in embed → enforced by using `*Raw` helpers + the size gate that would catch a zod regression. ✓
 
 **Placeholder scan:** No TBD/TODO; every code step shows complete code; the one judgment call (over-budget mitigation) is spelled out with the exact fallback. ✓

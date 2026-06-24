@@ -34,8 +34,10 @@ play / seek`)"* and *"GSAP scroll demo scrubs `animateTo`"*.
 
 ## Constraints
 
-- **Bundle budget is a hard gate:** the embed must stay **< 15 KB gzip**
-  (currently 13.58 KB, ~1.4 KB headroom). zod must NOT reach the embed.
+- **Bundle budget is a hard gate:** the embed must stay **< 16.5 KB gzip**.
+  (The static embed was 13.58 KB; the runtime API adds ~2.5 KB → ~16.0 KB, so
+  the original 15 KB budget was raised to 16.5 KB by decision 2026-06-24.) zod
+  must NOT reach the embed.
 - **No duplicated interpolation math.** The studio already morphs configs via
   `lerpConfig`/`sampleTimeline` in `packages/core`. The embed reuses that code,
   not a re-implementation (gotcha #10: the legacy string-built embed duplicated
@@ -149,10 +151,10 @@ in the demo only — never bundled into the embed.
   merge correctly.
 - **Playwright (real Chromium):** load the demo; `animateTo(target)` end-state
   matches a pixel golden; `seek(t_fixed)` matches a deterministic golden.
-- **Budget:** add an automated assertion (test or build step) that the gzipped
-  `dist/plasma-bg.js` is **< 15 KB**. This is the acceptance gate; if the new
-  imports push it over, the fallback is a lighter color-mix path in
-  `lerpConfigRaw` (flagged, not silently shipped).
+- **Budget:** add an automated assertion (build step) that the gzipped
+  `dist/plasma-bg.js` is **< 16.5 KB**. This is the acceptance gate. (The API
+  measured ~16.0 KB; budget raised from 15 KB to 16.5 KB by decision
+  2026-06-24 rather than degrade OKLab color morphing — see Constraints.)
 
 ## Out of scope
 
@@ -171,6 +173,6 @@ in the demo only — never bundled into the embed.
 4. Reduced-motion honored as specified.
 5. Plasma motion keeps running through morphs (two clocks).
 6. Demo page autoplays a timeline and scrubs via scroll.
-7. Full unit + Playwright suites green; **embed gzip < 15 KB** asserted
+7. Full unit + Playwright suites green; **embed gzip < 16.5 KB** asserted
    automatically.
 8. No zod in the embed bundle.
