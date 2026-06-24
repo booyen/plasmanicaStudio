@@ -1,6 +1,6 @@
 # Continue here
 
-> Handoff note for picking up on another machine. Last updated 2026-06-22.
+> Handoff note for picking up on another machine. Last updated 2026-06-24.
 
 ## How to resume
 
@@ -100,15 +100,46 @@ test-first per [the plan](docs/superpowers/plans/2026-06-23-keyframe-timeline.md
   midpoint Playwright golden. Full suite green: 103 unit (88 core + 15 studio), 15 visual;
   embed unchanged at 13.58 KB (timeline code stays out of the embed).
 
-> Follow-ups (own specs): embed runtime API (`plasmaBG.animateTo/timeline/play/seek`),
-> audio reactivity, crossfading discrete (motion/material) changes instead of hard-cut,
-> a second engine. Small polish: the export filename uses the manual duration, not the
-> timeline duration, for timeline exports.
+> Follow-ups (own specs): audio reactivity, crossfading discrete (motion/material)
+> changes instead of hard-cut, a second engine. Small polish: the export filename uses
+> the manual duration, not the timeline duration, for timeline exports.
+
+## Done — embed runtime API (M5 v2) (2026-06-24)
+
+Runtime animation API on the `<plasma-bg>` custom element, completing the second
+deliverable of **Milestone 5**. Implemented test-first per
+[the plan](docs/superpowers/plans/2026-06-24-embed-runtime-api.md):
+
+- **API surface:** `set(patch)`, `animateTo(patch, opts)`, `timeline(tl)`, `play({loop})`,
+  `pause()`, `seek(t)`, `getConfig()`, `progress`. All config inputs are deep-merged
+  partial patches (no full config required). Drivers are mutually exclusive — every entry
+  point cancels the active driver before starting.
+- **Core (zod-free):** [timeline.ts](packages/core/src/plasma/timeline.ts) gains
+  `lerpConfigRaw` and `sampleTimelineRaw` (raw-typed, no zod); new
+  [merge.ts](packages/core/src/plasma/merge.ts) exports `mergeConfigPatch` (deep-merge
+  over current look). The embed reuses the studio's morph math without pulling zod.
+- **Controller:** new [packages/embed/src/controller.ts](packages/embed/src/controller.ts)
+  (`PlasmaController`) owns a single rAF morph driver. `seek` is stateless for
+  external scrubbing. Two clocks are preserved: the plasma's motion time runs
+  independently while the controller sets only the *look* config.
+- **Reduced-motion:** `animateTo` snaps instantly; `play` stills on the first keyframe;
+  `set`/`seek` are unaffected.
+- **Bundle budget raised:** 15 KB → **16.5 KB gzip** (decision 2026-06-24) to ship the
+  full API and OKLab color quality in one bundle. Hard gate enforced by
+  [packages/embed/scripts/check-size.mjs](packages/embed/scripts/check-size.mjs) (build
+  fails at ≥ 16.5 KB). Current size: **15.70 KB gzip**.
+- **Demo:** [packages/embed/demo/](packages/embed/demo/) — autoplay timeline loop +
+  GSAP ScrollTrigger scroll-scrub (GSAP via CDN only; no embed bundle impact).
+- **Tests:** 124 unit tests (99 core + 10 embed + 15 studio), 15 visual goldens
+  (including the new `embed-seek-midpoint`). Full suite green.
+
+> Remaining M5 work: engine #2 (mesh gradient, or reaction-diffusion as the more
+> distinctive alternative — see §9 in PLASMA_STUDIO_ROADMAP.md).
 
 ## Next ideas (backlog)
 
 Effects extensions noted as out-of-scope in the post-effects spec: chromatic
 aberration, vignette, per-effect presets, WebGL2/float FBOs. Plus: migrate the MP4
 muxer off deprecated `mp4-muxer` to `mediabunny`; optional 4K export tier (now cheap
-with faster-than-realtime WebCodecs); M5 second half (embed runtime API / a second
-engine). See [PLASMA_STUDIO_ROADMAP.md](PLASMA_STUDIO_ROADMAP.md).
+with faster-than-realtime WebCodecs); M5 remaining: engine #2 (mesh gradient or
+reaction-diffusion). See [PLASMA_STUDIO_ROADMAP.md](PLASMA_STUDIO_ROADMAP.md).

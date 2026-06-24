@@ -33,7 +33,7 @@ ideas for later: preset gallery/community, team libraries, white-label embeds �
 | Color | **culori** | OKLCH palette interpolation for preset morphing (RGB lerps go muddy). |
 | Share links | **lz-string** (base64url-compressed config in URL hash) | Zero-backend sharing for v1; DB-backed short links later. |
 | Monorepo | **pnpm workspaces + Turborepo** | `packages/core`, `packages/embed`, `packages/react`, `apps/studio`. Embed must stay dependency-free and tiny. |
-| Embed build | **tsup/Vite lib mode → vanilla `<plasma-bg>` custom element** | No Lit, no React in the embed. Target < 15 KB gzip. |
+| Embed build | **tsup/Vite lib mode → vanilla `<plasma-bg>` custom element** | No Lit, no React in the embed. Target < 16.5 KB gzip (raised 2026-06-24; was 15 KB). |
 | Video export | **MediaRecorder now → WebCodecs + mp4-muxer (P3)** | WebCodecs gives real MP4/H.264, controlled bitrate, no realtime constraint (render faster than realtime). |
 | Testing | **Vitest (unit) + Playwright (visual goldens)** | Screenshot-diff every shader change — the workflow upgrade this project most needs (see gotcha #13). |
 | Backend (later) | **Vercel + Neon Postgres + Drizzle; Auth.js** | Only when the preset gallery/accounts land. v1 ships backend-free. |
@@ -253,7 +253,7 @@ makes this trivial).
 | 2 | Presets + share links + hardening | URL restores exact look; never-black; reduced-motion |
 | 3 | Embed package + runtime API + preset morphing | `<plasma-bg>` <15KB gz; GSAP scroll demo scrubs `animateTo` |
 | 4 | Post pipeline (bloom, glass) + WebCodecs MP4 export | Toggleable passes; mp4 downloads |
-| 5 | Keyframe timeline + second engine (mesh gradient) | Timeline exports with embed; engine #2 ships with zero studio edits | _(in-studio keyframe timeline + video export shipped 2026-06-23; embed runtime API + engine #2 remain)_ |
+| 5 | Keyframe timeline + second engine (mesh gradient) | Timeline exports with embed; engine #2 ships with zero studio edits | _(in-studio keyframe timeline shipped 2026-06-23; embed runtime API (`set`/`animateTo`/`timeline`/`play`/`pause`/`seek`/`getConfig`/`progress`) shipped 2026-06-24; engine #2 remains)_ |
 
 ---
 
@@ -261,7 +261,7 @@ makes this trivial).
 - Read §4 before touching shaders; screenshot-diff every shader change.
 - Never retype GLSL — extract programmatically from the legacy file.
 - The renderer core must stay React-free; React only mounts/unmounts it.
-- Embed bundle budget is a feature: < 15 KB gzip, zero dependencies.
+- Embed bundle budget: < 16.5 KB gzip (raised 2026-06-24 to ship the runtime API + OKLab quality), zero dependencies.
 - When in doubt about feel/UX, the legacy HTML is the spec — its look and slider semantics were
   deliberately iterated with the user.
 
