@@ -130,8 +130,9 @@ deliverable of **Milestone 5**. Implemented test-first per
   fails at ≥ 16.5 KB). Current size: **15.70 KB gzip**.
 - **Demo:** [packages/embed/demo/](packages/embed/demo/) — autoplay timeline loop +
   GSAP ScrollTrigger scroll-scrub (GSAP via CDN only; no embed bundle impact).
-- **Tests:** 124 unit tests (99 core + 10 embed + 15 studio), 15 visual goldens
-  (including the new `embed-seek-midpoint`). Full suite green.
+- **Tests:** 124 unit tests (99 core + 10 embed + 15 studio), 16 visual test cases
+  (15 screenshot goldens — including the new `embed-seek-midpoint` — + the MP4 probe).
+  Full suite green.
 
 > Remaining M5 work: engine #2 (mesh gradient, or reaction-diffusion as the more
 > distinctive alternative — see §9 in PLASMA_STUDIO_ROADMAP.md).
